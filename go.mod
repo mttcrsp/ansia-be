@@ -1,4 +1,4 @@
-module github.com/mttcrsp/ansia-be
+module github.com/mttcrsp/ansiabe
 
 go 1.17
 
