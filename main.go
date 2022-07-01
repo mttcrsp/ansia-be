@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
-	"github.com/mttcrsp/ansia-be/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
+	"github.com/mttcrsp/ansiabe/internal/rss"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 }
 
 func run() error {
-	collectionsLoader := feeds.CollectionsLoader{}
+	collectionsLoader := feeds.Loader{}
 
 	mainFeeds, err := collectionsLoader.LoadMain()
 	if err != nil {
@@ -28,9 +28,9 @@ func run() error {
 		return err
 	}
 
-	loader := feeds.RSSLoader{}
-	items := []feeds.Item{}
-	feeds := map[string][]feeds.Item{}
+	loader := rss.Loader{}
+	items := []rss.Item{}
+	feeds := map[string][]rss.Item{}
 
 	for _, feed := range append(mainFeeds, regionalFeeds...) {
 		rss, err := loader.Load(feed.URL)

@@ -1,4 +1,4 @@
-package feeds
+package rss
 
 import (
 	"encoding/xml"
@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-type RSSLoader struct{}
+type Loader struct{}
 
-func (l *RSSLoader) Load(url string) (*RSS, error) {
+func (l *Loader) Load(url string) (*RSS, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
