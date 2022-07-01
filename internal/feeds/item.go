@@ -22,7 +22,7 @@ func (i *Item) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(&struct {
 		Title       string    `json:"title"`
-		Description string    `json:"headline"`
+		Description string    `json:"description"`
 		Link        string    `json:"url"`
 		PubDate     time.Time `json:"published_at"`
 	}{
