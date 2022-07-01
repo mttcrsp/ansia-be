@@ -15,20 +15,28 @@ func main() {
 }
 
 func run() error {
-	l := feeds.FeedCollectionsLoader{}
+	cl := feeds.FeedCollectionsLoader{}
 
-	mainFeeds, err := l.LoadMain()
+	mainFeeds, err := cl.LoadMain()
 	if err != nil {
 		return err
 	}
 
-	regionalFeeds, err := l.LoadRegional()
+	regionalFeeds, err := cl.LoadRegional()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(mainFeeds)
-	fmt.Println(regionalFeeds)
+	fl := feeds.FeedRSSLoader{}
+	rss, err := fl.Feed(mainFeeds[0].URL)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%+v\n", rss)
+
+	_ = mainFeeds
+	_ = regionalFeeds
 	_ = goose.New()
 	return nil
 }
