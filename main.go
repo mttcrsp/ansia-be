@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
+	"os"
 
 	goose "github.com/advancedlogic/GoOse"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
@@ -28,15 +29,20 @@ func run() error {
 	}
 
 	fl := feeds.FeedRSSLoader{}
-	rss, err := fl.Feed(mainFeeds[0].URL)
-	if err != nil {
-		return err
+
+	m := map[string][]feeds.FeedItem{}
+
+	for _, feed := range append(mainFeeds, regionalFeeds...) {
+		rss, err := fl.Feed(feed.URL)
+		if err != nil {
+			return err
+		}
+		m[feed.Title] = (*rss).Channel.Items
 	}
 
-	fmt.Printf("%+v\n", rss)
+	bytes, _ := json.Marshal(m)
+	_ = os.WriteFile("output.json", bytes, 0777)
 
-	_ = mainFeeds
-	_ = regionalFeeds
 	_ = goose.New()
 	return nil
 }
