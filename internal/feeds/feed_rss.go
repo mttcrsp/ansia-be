@@ -9,5 +9,5 @@ type FeedRSS struct {
 
 type FeedChannel struct {
 	XMLName xml.Name   `xml:"channel"`
-	Item    []FeedItem `xml:"item"`
+	Items   []FeedItem `xml:"item"`
 }
