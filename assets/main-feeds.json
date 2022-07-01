@@ -1,0 +1,55 @@
+[
+  { "title" : "Home", "url": "https://www.ansa.it/sito/ansait_rss.xml" },
+  {
+    "title" : "Cronaca",
+    "url": "https://www.ansa.it/sito/notizie/cronaca/cronaca_rss.xml"
+  },
+  {
+    "title" : "Politica",
+    "url": "https://www.ansa.it/sito/notizie/politica/politica_rss.xml"
+  },
+  {
+    "title" : "Mondo",
+    "url": "https://www.ansa.it/sito/notizie/mondo/mondo_rss.xml"
+  },
+  {
+    "title" : "Economia",
+    "url": "https://www.ansa.it/sito/notizie/economia/economia_rss.xml"
+  },
+  {
+    "title" : "Calcio",
+    "url": "https://www.ansa.it/sito/notizie/sport/calcio/calcio_rss.xml"
+  },
+  {
+    "title" : "Sport",
+    "url": "https://www.ansa.it/sito/notizie/sport/sport_rss.xml"
+  },
+  {
+    "title" : "Cinema",
+    "url": "https://www.ansa.it/sito/notizie/cultura/cinema/cinema_rss.xml"
+  },
+  {
+    "title" : "Cultura",
+    "url": "https://www.ansa.it/sito/notizie/cultura/cultura_rss.xml"
+  },
+  {
+    "title" : "Tecnologia",
+    "url": "https://www.ansa.it/sito/notizie/tecnologia/tecnologia_rss.xml"
+  },
+  {
+    "title" : "Ultime Notizie",
+    "url": "https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml"
+  },
+  {
+    "title" : "English News",
+    "url": "https://www.ansa.it/english/english_rss.xml"
+  },
+  {
+    "title" : "Foto",
+    "url": "https://www.ansa.it/sito/photogallery/foto_rss.xml"
+  },
+  {
+    "title" : "Video",
+    "url": "https://www.ansa.it/sito/videogallery/video_rss.xml"
+  }
+]
