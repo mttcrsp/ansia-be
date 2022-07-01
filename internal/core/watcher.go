@@ -70,7 +70,7 @@ func (u *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 	}
 
 	oldItems := map[string]WatcherItem{}
-	for !isCancelled() {
+	iterate := func() {
 		if handlers.OnIterationBegin != nil {
 			handlers.OnIterationBegin()
 		}
@@ -80,7 +80,7 @@ func (u *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 			rss, err := u.rssLoader.Load(feed.URL)
 			if err != nil {
 				handlers.OnError(err)
-				continue
+				return
 			}
 
 			for _, item := range rss.Channel.Items {
@@ -120,6 +120,10 @@ func (u *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 		}
 
 		oldItems = newItems
+	}
+
+	for !isCancelled() {
+		iterate()
 		time.Sleep(config.IterationBackoff)
 	}
 
