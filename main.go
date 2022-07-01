@@ -1,11 +1,10 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
-	"os"
 
-	goose "github.com/advancedlogic/GoOse"
+	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 )
 
@@ -23,26 +22,37 @@ func run() error {
 		return err
 	}
 
-	regionalFeeds, err := cl.LoadRegional()
+	fl := feeds.RSSLoader{}
+	rss, err := fl.Load(mainFeeds[0].URL)
 	if err != nil {
 		return err
 	}
 
-	fl := feeds.RSSLoader{}
-
-	m := map[string][]feeds.Item{}
-
-	for _, feed := range append(mainFeeds, regionalFeeds...) {
-		rss, err := fl.Load(feed.URL)
-		if err != nil {
-			return err
-		}
-		m[feed.Title] = (*rss).Channel.Items
+	article, err := articles.NewExtractor().Extract(rss.Channel.Items[0].Link)
+	if err != nil {
+		return err
 	}
 
-	bytes, _ := json.Marshal(m)
-	_ = os.WriteFile("output.json", bytes, 0777)
+	fmt.Printf("%+v\n", article)
 
-	_ = goose.New()
+	// regionalFeeds, err := cl.LoadRegional()
+	// if err != nil {
+	// 	return err
+	// }
+	// fl := feeds.RSSLoader{}
+
+	// m := map[string][]feeds.Item{}
+
+	// for _, feed := range append(mainFeeds, regionalFeeds...) {
+	// 	rss, err := fl.Load(feed.URL)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	m[feed.Title] = (*rss).Channel.Items
+	// }
+
+	// bytes, _ := json.Marshal(m)
+	// _ = os.WriteFile("output.json", bytes, 0777)
+
 	return nil
 }
