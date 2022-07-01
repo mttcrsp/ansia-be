@@ -43,6 +43,7 @@ func (e *QueuedExtractor) Run(config QueuedExtractorConfig, handlers QueuedExtra
 			var item *rss.Item
 			if len(e.queue) > 0 {
 				item = &e.queue[0]
+				e.queue = e.queue[1:]
 			}
 			e.queueMu.Unlock()
 
