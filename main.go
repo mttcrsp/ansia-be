@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
-	"github.com/mttcrsp/ansiabe/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
 )
@@ -16,45 +17,36 @@ func main() {
 }
 
 func run() error {
-	collectionsLoader := feeds.Loader{}
+	var cancel func()
 
-	mainFeeds, err := collectionsLoader.LoadMain()
-	if err != nil {
-		return err
-	}
-
-	regionalFeeds, err := collectionsLoader.LoadRegional()
-	if err != nil {
-		return err
-	}
-
-	loader := rss.Loader{}
-	items := []rss.Item{}
-	feeds := map[string][]rss.Item{}
-
-	for _, feed := range append(mainFeeds, regionalFeeds...) {
-		rss, err := loader.Load(feed.URL)
-		if err != nil {
-			return err
-		}
-
-		feedItems := (*rss).Channel.Items
-		feeds[feed.Title] = feedItems
-		items = append(items, feedItems...)
-	}
-
-	extractor := articles.NewExtractor()
-	articles := map[string]articles.Article{}
-
-	for _, item := range items {
-		article, err := extractor.Extract(item.Link)
-		if err != nil {
-			return err
-		}
-
-		articles[item.Link] = article
-		time.Sleep(time.Second / 2)
-	}
+	fl := feeds.Loader{}
+	rl := rss.Loader{}
+	watcher := core.NewWatcher(fl, rl)
+	cancel = watcher.Run(
+		core.WatcherConfig{
+			IterationBackoff: time.Minute,
+		},
+		core.WatcherHandlers{
+			OnIterationBegin: func() {
+				fmt.Println("iteration began")
+			},
+			OnIterationEnd: func() {
+				fmt.Println("iteration ended")
+			},
+			OnInsert: func(wi []core.WatcherItem) {
+				fmt.Println("inserted", len(wi))
+			},
+			OnDelete: func(wi []core.WatcherItem) {
+				fmt.Println("deleted", len(wi))
+			},
+			OnError: func(err error) {
+				if cancel != nil {
+					cancel()
+				}
+				fmt.Println(err)
+			},
+		},
+	)
 
 	return nil
 }
