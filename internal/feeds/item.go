@@ -7,11 +7,11 @@ import (
 )
 
 type Item struct {
-	XMLName     xml.Name `xml:"item" json:"-"`
-	Title       string   `xml:"title" json:"title"`
-	Description string   `xml:"description" json:"description"`
-	Link        string   `xml:"link" json:"link"`
-	PubDateRaw  string   `xml:"pubDate" json:"pubDate"`
+	XMLName     xml.Name `xml:"item"`
+	Title       string   `xml:"title"`
+	Description string   `xml:"description"`
+	Link        string   `xml:"link"`
+	PubDateRaw  string   `xml:"pubDate"`
 }
 
 func (i *Item) MarshalJSON() ([]byte, error) {
