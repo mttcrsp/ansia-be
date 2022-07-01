@@ -16,7 +16,7 @@ func main() {
 }
 
 func run() error {
-	cl := feeds.FeedCollectionsLoader{}
+	cl := feeds.CollectionsLoader{}
 
 	mainFeeds, err := cl.LoadMain()
 	if err != nil {
@@ -28,12 +28,12 @@ func run() error {
 		return err
 	}
 
-	fl := feeds.FeedRSSLoader{}
+	fl := feeds.RSSLoader{}
 
-	m := map[string][]feeds.FeedItem{}
+	m := map[string][]feeds.Item{}
 
 	for _, feed := range append(mainFeeds, regionalFeeds...) {
-		rss, err := fl.Feed(feed.URL)
+		rss, err := fl.Load(feed.URL)
 		if err != nil {
 			return err
 		}

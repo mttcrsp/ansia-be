@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-type FeedRSSLoader struct{}
+type RSSLoader struct{}
 
-func (l *FeedRSSLoader) Feed(url string) (*FeedRSS, error) {
+func (l *RSSLoader) Load(url string) (*RSS, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -19,7 +19,7 @@ func (l *FeedRSSLoader) Feed(url string) (*FeedRSS, error) {
 		return nil, err
 	}
 
-	rss := FeedRSS{}
+	rss := RSS{}
 	if err = xml.Unmarshal(body, &rss); err != nil {
 		return nil, err
 	}

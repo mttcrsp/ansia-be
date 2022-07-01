@@ -5,17 +5,17 @@ import (
 	"os"
 )
 
-type FeedCollectionsLoader struct{}
+type CollectionsLoader struct{}
 
-func (l *FeedCollectionsLoader) LoadMain() ([]Feed, error) {
+func (l *CollectionsLoader) LoadMain() ([]Feed, error) {
 	return l.load("./assets/main-feeds.json")
 }
 
-func (l *FeedCollectionsLoader) LoadRegional() ([]Feed, error) {
+func (l *CollectionsLoader) LoadRegional() ([]Feed, error) {
 	return l.load("./assets/regional-feeds.json")
 }
 
-func (l *FeedCollectionsLoader) load(path string) ([]Feed, error) {
+func (l *CollectionsLoader) load(path string) ([]Feed, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
