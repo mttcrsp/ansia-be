@@ -6,6 +6,7 @@ import (
 
 	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/rss"
+	"github.com/mttcrsp/ansiabe/internal/utils"
 )
 
 type QueuedExtractorItem struct {
@@ -35,53 +36,34 @@ func NewQueuedExtractor(extractor articles.Extractor) *QueuedExtractor {
 }
 
 func (e *QueuedExtractor) Run(config QueuedExtractorConfig, handlers QueuedExtractorHandlers) func() {
-	cancelled := false
-	var mu sync.Mutex
+	return utils.Loop(
+		config.Backoff,
+		func() {
+			e.queueMu.Lock()
+			var item *rss.Item
+			if len(e.queue) > 0 {
+				item = &e.queue[0]
+			}
+			e.queueMu.Unlock()
 
-	cancel := func() {
-		mu.Lock()
-		cancelled = true
-		mu.Unlock()
-	}
+			if item == nil {
+				return
+			}
 
-	isCancelled := func() bool {
-		mu.Lock()
-		defer mu.Unlock()
-		return cancelled
-	}
+			article, err := e.extractor.Extract(item.Link)
+			if err != nil {
+				handlers.OnError(err)
+				return
+			}
 
-	iterate := func() {
-		e.queueMu.Lock()
-		var item *rss.Item
-		if len(e.queue) > 0 {
-			item = &e.queue[0]
-		}
-		e.queueMu.Unlock()
-
-		if item == nil {
-			return
-		}
-
-		article, err := e.extractor.Extract(item.Link)
-		if err != nil {
-			handlers.OnError(err)
-			return
-		}
-
-		handlers.OnItemExtracted(
-			QueuedExtractorItem{
-				Item:    *item,
-				Article: *article,
-			},
-		)
-	}
-
-	for !isCancelled() {
-		iterate()
-		time.Sleep(config.Backoff)
-	}
-
-	return cancel
+			handlers.OnItemExtracted(
+				QueuedExtractorItem{
+					Item:    *item,
+					Article: *article,
+				},
+			)
+		},
+	)
 }
 
 func (e *QueuedExtractor) Enqueue(items []rss.Item) {
