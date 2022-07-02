@@ -8,11 +8,11 @@ import (
 type Loader struct{}
 
 func (l *Loader) LoadMain() ([]Feed, error) {
-	return l.load("./internal/feeds/main.json")
+	return l.load("./assets/main.json")
 }
 
 func (l *Loader) LoadRegional() ([]Feed, error) {
-	return l.load("./internal/feeds/regional.json")
+	return l.load("./assets/regional.json")
 }
 
 func (l *Loader) load(path string) ([]Feed, error) {
