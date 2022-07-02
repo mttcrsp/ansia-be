@@ -42,13 +42,7 @@ func (w *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 		panic("must provide an error handler")
 	}
 
-	mainFeeds, err := w.feedsLoader.LoadMain()
-	if err != nil {
-		handlers.OnError(err)
-		return func() {}
-	}
-
-	regionalFeeds, err := w.feedsLoader.LoadRegional()
+	mainFeeds, regionalFeeds, err := w.feedsLoader.LoadAll()
 	if err != nil {
 		handlers.OnError(err)
 		return func() {}

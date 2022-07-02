@@ -7,6 +7,20 @@ import (
 
 type Loader struct{}
 
+func (l *Loader) LoadAll() ([]Feed, []Feed, error) {
+	mainFeeds, err := l.LoadMain()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	regionalFeeds, err := l.LoadRegional()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return mainFeeds, regionalFeeds, nil
+}
+
 func (l *Loader) LoadMain() ([]Feed, error) {
 	return l.load("./assets/main.json")
 }

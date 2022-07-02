@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -97,7 +98,7 @@ func run() error {
 				},
 			},
 		)
-		c <- "watcher did complete"
+		c <- "watcher did exit"
 	}()
 
 	go func() {
@@ -120,20 +121,12 @@ func run() error {
 				},
 			},
 		)
-		c <- "extractor did complete"
+		c <- "extractor did exit"
 	}()
 
-	feedsLogger := newLogger("server")
-
-	mainFeeds, err := fl.LoadMain()
+	mainFeeds, regionalFeeds, err := fl.LoadAll()
 	if err != nil {
-		feedsLogger.Println("failed to load main feeds:", err)
-		return err
-	}
-
-	regionalFeeds, err := fl.LoadRegional()
-	if err != nil {
-		feedsLogger.Println("failed to load main feeds:", err)
+		newLogger("feeds").Println("failed to load feeds:", err)
 		return err
 	}
 
@@ -160,10 +153,8 @@ func run() error {
 		r.GET("/feeds", feedsHandler)
 		r.GET("/feeds/:feed", feedHandler)
 		r.Run()
-		c <- "server did complete"
+		c <- "server did exit"
 	}()
 
-	fmt.Println(<-c)
-
-	return nil
+	return errors.New(<-c)
 }
