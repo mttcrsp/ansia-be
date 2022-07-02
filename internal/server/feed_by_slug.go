@@ -23,14 +23,14 @@ func FeedBySlug(vals FeedBySlugVals, deps FeedBySlugDeps) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		feedSlug := c.Param("feed")
 
-		var feed *feeds.Feed
+		found := false
 		for _, f := range append(vals.MainFeeds, vals.RegionalFeeds...) {
 			if f.Slug() == feedSlug {
-				feed = &f
+				found = true
 			}
 		}
 
-		if feed == nil {
+		if !found {
 			c.Status(404)
 			return
 		}
@@ -41,11 +41,11 @@ func FeedBySlug(vals FeedBySlugVals, deps FeedBySlugDeps) func(c *gin.Context) {
 			return
 		}
 
+		status := 200
 		if len(feedItems) == 0 {
-			c.Status(400)
-			return
+			status = 204
 		}
 
-		c.JSON(200, Response{Items: feedItems})
+		c.JSON(status, Response{Items: feedItems})
 	}
 }
