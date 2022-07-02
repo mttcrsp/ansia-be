@@ -1,7 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"time"
+
+	"github.com/mttcrsp/ansiabe/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/core"
+	"github.com/mttcrsp/ansiabe/internal/feeds"
+	"github.com/mttcrsp/ansiabe/internal/rss"
 )
 
 func main() {
@@ -11,35 +19,75 @@ func main() {
 }
 
 func run() error {
-	// var cancel func()
-	// fl := feeds.Loader{}
-	// rl := rss.Loader{}
-	// watcher := core.NewWatcher(fl, rl)
-	// cancel = watcher.Run(
-	// 	core.WatcherConfig{
-	// 		IterationBackoff: time.Minute,
-	// 	},
-	// 	core.WatcherHandlers{
-	// 		OnIterationBegin: func() {
-	// 			fmt.Println("iteration began")
-	// 		},
-	// 		OnIterationEnd: func() {
-	// 			fmt.Println("iteration ended")
-	// 		},
-	// 		OnInsert: func(wi []core.WatcherItem) {
-	// 			fmt.Println("inserted", len(wi))
-	// 		},
-	// 		OnDelete: func(wi []core.WatcherItem) {
-	// 			fmt.Println("deleted", len(wi))
-	// 		},
-	// 		OnError: func(err error) {
-	// 			if cancel != nil {
-	// 				cancel()
-	// 			}
-	// 			fmt.Println(err)
-	// 		},
-	// 	},
-	// )
+	newLogger := func(identifier string) log.Logger {
+		logger := log.Logger{}
+		logger.SetOutput(os.Stdout)
+		logger.SetPrefix(fmt.Sprintf("[%s] ", identifier))
+		logger.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+		return logger
+	}
+
+	fl := feeds.Loader{}
+	rl := rss.Loader{}
+	watcherLogger := newLogger("watcher")
+	watcher := core.NewWatcher(fl, rl)
+
+	extractor := articles.NewExtractor()
+	extractorLogger := newLogger("extractor")
+	queuedExtractor := core.NewQueuedExtractor(*extractor)
+
+	c := make(chan string)
+
+	go func() {
+		watcher.Run(
+			core.WatcherConfig{
+				IterationBackoff: time.Minute,
+			},
+			core.WatcherHandlers{
+				OnInsert: func(wi []core.WatcherItem) {
+					watcherLogger.Println("inserted", len(wi))
+
+					var items []rss.Item
+					for _, item := range wi {
+						items = append(items, item.Item)
+					}
+					queuedExtractor.Enqueue(items)
+				},
+				OnDelete: func(wi []core.WatcherItem) {
+					watcherLogger.Println("deleted", len(wi))
+				},
+				OnError: func(err error) {
+					watcherLogger.Println(err)
+				},
+				OnIterationBegin: func() {
+					watcherLogger.Println("iteration did begin")
+				},
+				OnIterationEnd: func() {
+					watcherLogger.Println("iteration did end")
+				},
+			},
+		)
+		c <- "watcher did complete"
+	}()
+
+	go func() {
+		queuedExtractor.Run(
+			core.QueuedExtractorConfig{
+				Backoff: time.Second,
+			},
+			core.QueuedExtractorHandlers{
+				OnItemExtracted: func(qei core.QueuedExtractorItem) {
+					extractorLogger.Printf("extracted item '%s'\n", qei.Item.Link)
+				},
+				OnError: func(err error) {
+					extractorLogger.Println(err)
+				},
+			},
+		)
+		c <- "extractor did complete"
+	}()
+
+	fmt.Println(<-c)
 
 	return nil
 }
