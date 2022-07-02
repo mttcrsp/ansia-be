@@ -19,9 +19,19 @@ github.com/gigawattio/window
 # github.com/go-resty/resty/v2 v2.0.0
 ## explicit
 github.com/go-resty/resty/v2
+# github.com/gosimple/slug v1.12.0
+## explicit; go 1.11
+github.com/gosimple/slug
+# github.com/gosimple/unidecode v1.0.1
+## explicit; go 1.16
+github.com/gosimple/unidecode
 # github.com/jaytaylor/html2text v0.0.0-20180606194806-57d518f124b0
 ## explicit
 github.com/jaytaylor/html2text
+# github.com/jmoiron/sqlx v1.3.5
+## explicit; go 1.10
+github.com/jmoiron/sqlx
+github.com/jmoiron/sqlx/reflectx
 # github.com/mattn/go-runewidth v0.0.3
 ## explicit
 github.com/mattn/go-runewidth

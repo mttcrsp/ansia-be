@@ -1,11 +1,12 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mttcrsp/ansiabe/internal/core"
+	"github.com/mttcrsp/ansiabe/internal/feeds"
+	"github.com/mttcrsp/ansiabe/internal/rss"
 )
 
 func main() {
@@ -15,12 +16,30 @@ func main() {
 }
 
 func run() error {
-	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
+	item, err := core.NewItem(
+		rss.Item{
+			Title:       "something",
+			Description: "Else",
+			Link:        "https://www.ansa.it/something/else",
+			PubDateRaw:  "Mon, 2 Jan 2006 15:04:05 -0700",
+		},
+		feeds.Feed{
+			Title: "Politica",
+			URL:   "https://www.ansa.it/sito/notizie/politica/politica_rss.xml",
+		},
+	)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(db)
+	if err != nil {
+		return err
+	}
+
+	store := core.Store{}
+	if err := store.Insert([]core.Item{*item}); err != nil {
+		return err
+	}
 
 	// newLogger := func(identifier string) log.Logger {
 	// 	logger := log.Logger{}
