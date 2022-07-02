@@ -10,6 +10,8 @@ import (
 
 const (
 	createTablesSQL = `
+	PRAGMA foreign_keys=ON;
+
 	CREATE TABLE IF NOT EXISTS item (
 		item_id INTEGER NOT NULL PRIMARY KEY,
 		title STRING NOT NULL,
@@ -34,9 +36,15 @@ const (
 	deleteItemSQL = `
 	DELETE FROM item WHERE item_id = ?;
 	`
+	getItemsSql = `
+	SELECT * FROM item;
+	`
 	insertArticleSQL = `
-	INSERT INTO article (item, keywords, content, image_url)
-		VALUES (:item, :keywords, :content, :image_url)
+	INSERT INTO article (item_id, keywords, content, image_url)
+		VALUES (:item_id, :keywords, :content, :image_url)
+	`
+	getArticlesSQL = `
+	SELECT * FROM article;
 	`
 )
 
@@ -114,9 +122,23 @@ func (s *Store) InsertArticle(article Article) error {
 }
 
 func (s *Store) GetItems() ([]Item, error) {
+	db, err := s.db()
+	if err != nil {
+		return nil, err
+	}
+
 	items := []Item{}
-	err := s.withTx(func(tx *sqlx.Tx) error {
-		return tx.Select(&items, "SELECT * FROM item LIMIT 3")
-	})
+	err = db.Select(&items, getItemsSql)
 	return items, err
+}
+
+func (s *Store) GetArticles() ([]Article, error) {
+	db, err := s.db()
+	if err != nil {
+		return nil, err
+	}
+
+	articles := []Article{}
+	err = db.Select(&articles, getArticlesSQL)
+	return articles, err
 }
