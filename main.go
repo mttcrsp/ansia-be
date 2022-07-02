@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/core"
@@ -120,6 +123,17 @@ func run() error {
 			},
 		)
 		c <- "extractor did complete"
+	}()
+
+	go func() {
+		r := gin.Default()
+		r.GET("/ping", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "pong",
+			})
+		})
+		r.Run()
+		c <- "server did complete"
 	}()
 
 	fmt.Println(<-c)
