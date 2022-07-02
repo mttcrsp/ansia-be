@@ -1,9 +1,6 @@
 package core
 
 import (
-	"context"
-	"sync"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -54,53 +51,31 @@ const (
 )
 
 type Store struct {
-	database     *sqlx.DB
-	databaseLock sync.Mutex
+	db *sqlx.DB
 }
 
-func (s *Store) db() (*sqlx.DB, error) {
-	s.databaseLock.Lock()
-	defer s.databaseLock.Unlock()
-
-	if s.database != nil {
-		return s.database, nil
+func (s *Store) withDB(fn func(db *sqlx.DB) error) error {
+	if s.db != nil {
+		return fn(s.db)
 	}
 
-	database, err := sqlx.Connect("sqlite3", "file::memory:?cache=shared&mode=rwc")
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = database.Exec(createTablesSQL); err != nil {
-		return nil, err
-	}
-
-	s.database = database
-	return database, nil
-}
-
-func (s *Store) withTx(fn func(*sqlx.Tx) error) error {
-	db, err := s.db()
+	db, err := sqlx.Connect("sqlite3", "file::memory:?cache=shared&mode=rwc")
 	if err != nil {
 		return err
 	}
 
-	tx, err := db.BeginTxx(context.Background(), nil)
-	if err != nil {
+	if _, err = db.Exec(createTablesSQL); err != nil {
 		return err
 	}
 
-	if err := fn(tx); err != nil {
-		return err
-	}
-
-	return tx.Commit()
+	s.db = db
+	return fn(s.db)
 }
 
 func (s *Store) InsertItems(items []Item) error {
-	return s.withTx(func(tx *sqlx.Tx) error {
+	return s.withDB(func(db *sqlx.DB) error {
 		for _, item := range items {
-			if _, err := tx.NamedExec(insertItemSQL, item); err != nil {
+			if _, err := db.NamedExec(insertItemSQL, item); err != nil {
 				return err
 			}
 		}
@@ -109,9 +84,9 @@ func (s *Store) InsertItems(items []Item) error {
 }
 
 func (s *Store) DeleteItems(items []Item) error {
-	return s.withTx(func(tx *sqlx.Tx) error {
+	return s.withDB(func(db *sqlx.DB) error {
 		for _, item := range items {
-			if _, err := tx.Exec(deleteItemSQL, item.ID); err != nil {
+			if _, err := db.Exec(deleteItemSQL, item.ID); err != nil {
 				return err
 			}
 		}
@@ -120,41 +95,32 @@ func (s *Store) DeleteItems(items []Item) error {
 }
 
 func (s *Store) InsertArticle(article Article) error {
-	return s.withTx(func(tx *sqlx.Tx) error {
-		_, err := tx.NamedExec(insertArticleSQL, article)
+	return s.withDB(func(db *sqlx.DB) error {
+		_, err := db.NamedExec(insertArticleSQL, article)
 		return err
 	})
 }
 
 func (s *Store) GetItems() ([]Item, error) {
-	db, err := s.db()
-	if err != nil {
-		return nil, err
-	}
-
 	items := []Item{}
-	err = db.Select(&items, getItemsSql)
+	err := s.withDB(func(db *sqlx.DB) error {
+		return db.Select(&items, getItemsSql)
+	})
 	return items, err
 }
 
 func (s *Store) GetArticles() ([]Article, error) {
-	db, err := s.db()
-	if err != nil {
-		return nil, err
-	}
-
 	articles := []Article{}
-	err = db.Select(&articles, getArticlesSQL)
+	err := s.withDB(func(db *sqlx.DB) error {
+		return db.Select(&articles, getArticlesSQL)
+	})
 	return articles, err
 }
 
 func (s *Store) GetFeed(feed string) ([]FeedItem, error) {
-	db, err := s.db()
-	if err != nil {
-		return nil, err
-	}
-
 	items := []FeedItem{}
-	err = db.Select(&items, getFeedSQL, feed)
+	err := s.withDB(func(db *sqlx.DB) error {
+		return db.Select(&items, getFeedSQL, feed)
+	})
 	return items, err
 }
