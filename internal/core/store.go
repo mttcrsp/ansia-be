@@ -60,6 +60,7 @@ func (s *Store) withDB(fn func(db *sqlx.DB) error) error {
 	}
 
 	db, err := sqlx.Connect("sqlite3", "file::memory:?cache=shared&mode=rwc")
+	// db, err := sqlx.Connect("sqlite3", "../../db.sqlite")
 	if err != nil {
 		return err
 	}

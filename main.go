@@ -109,9 +109,9 @@ func run() error {
 				OnItemExtracted: func(qei core.QueuedExtractorItem) {
 					extractorLogger.Printf("extracted item '%s'\n", qei.Item.Link)
 
-					article := core.NewArticle(qei.Article)
+					article := core.NewArticle(qei.Article, qei.Item)
 					if err := store.InsertArticle(article); err != nil {
-						storeLogger.Printf("failed to insert article: %s\n", err)
+						storeLogger.Printf("failed to insert article '%d': %s\n", article.ItemID, err)
 					}
 					storeLogger.Printf("did insert article '%s'", qei.Item.Link)
 				},

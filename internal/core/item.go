@@ -1,7 +1,6 @@
 package core
 
 import (
-	"hash/fnv"
 	"time"
 
 	"github.com/mttcrsp/ansiabe/internal/feeds"
@@ -23,11 +22,8 @@ func NewItem(item rss.Item, feed feeds.Feed) (*Item, error) {
 		return nil, err
 	}
 
-	h := fnv.New64()
-	h.Write([]byte(item.Link))
-
 	return &Item{
-		ID:          int64(h.Sum64()),
+		ID:          item.ID(),
 		Title:       item.Title,
 		Description: item.Description,
 		URL:         item.Link,
