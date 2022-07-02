@@ -24,12 +24,16 @@ const (
 		description STRING NOT NULL,
 		keywords STRING NOT NULL,
 		content STRING NOT NULL,
-		image_url STRING
+		image_url STRING,
+		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
 	);
 	`
 	insertItemSQL = `
-	INSERT INTO item(item_id, title, description, url, published_at)
-		VALUES(:item_id, :title, :description, :url, :published_at)
+	INSERT INTO item (item_id, title, description, url, published_at)
+		VALUES (:item_id, :title, :description, :url, :published_at);
+	`
+	deleteItemSQL = `
+	DELETE FROM item WHERE item_id = :item_id;
 	`
 )
 
@@ -77,6 +81,17 @@ func (s *Store) Insert(items []Item) error {
 	return s.withTx(func(tx *sqlx.Tx) error {
 		for _, item := range items {
 			if _, err := tx.NamedExec(insertItemSQL, item); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (s *Store) Delete(items []Item) error {
+	return s.withTx(func(tx *sqlx.Tx) error {
+		for _, item := range items {
+			if _, err := tx.NamedExec(deleteItemSQL, item.ID); err != nil {
 				return err
 			}
 		}

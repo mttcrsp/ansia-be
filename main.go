@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
@@ -16,100 +20,101 @@ func main() {
 }
 
 func run() error {
-	item, err := core.NewItem(
-		rss.Item{
-			Title:       "something",
-			Description: "Else",
-			Link:        "https://www.ansa.it/something/else",
-			PubDateRaw:  "Mon, 2 Jan 2006 15:04:05 -0700",
-		},
-		feeds.Feed{
-			Title: "Politica",
-			URL:   "https://www.ansa.it/sito/notizie/politica/politica_rss.xml",
-		},
-	)
-	if err != nil {
-		return err
+	newLogger := func(identifier string) *log.Logger {
+		logger := &log.Logger{}
+		logger.SetOutput(os.Stdout)
+		logger.SetPrefix(fmt.Sprintf("[%s] ", identifier))
+		logger.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+		return logger
 	}
 
-	if err != nil {
-		return err
+	conversionLogger := newLogger("conversion")
+	toItems := func(wis []core.WatcherItem) []core.Item {
+		var cis []core.Item
+		for _, wi := range wis {
+			ci, err := core.NewItem(wi.Item, wi.Feed)
+			if err != nil {
+				conversionLogger.Printf("failed to convert item '%s': %s", wi.Item.Link, err)
+				continue
+			}
+
+			cis = append(cis, *ci)
+		}
+
+		return cis
 	}
+
+	fl := feeds.Loader{}
+	rl := rss.Loader{}
+	watcherLogger := newLogger("watcher")
+	watcher := core.NewWatcher(fl, rl)
+
+	extractor := articles.NewExtractor()
+	extractorLogger := newLogger("extractor")
+	queuedExtractor := core.NewQueuedExtractor(*extractor)
 
 	store := core.Store{}
-	if err := store.Insert([]core.Item{*item}); err != nil {
-		return err
-	}
 
-	// newLogger := func(identifier string) log.Logger {
-	// 	logger := log.Logger{}
-	// 	logger.SetOutput(os.Stdout)
-	// 	logger.SetPrefix(fmt.Sprintf("[%s] ", identifier))
-	// 	logger.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
-	// 	return logger
-	// }
+	c := make(chan string)
 
-	// fl := feeds.Loader{}
-	// rl := rss.Loader{}
-	// watcherLogger := newLogger("watcher")
-	// watcher := core.NewWatcher(fl, rl)
+	go func() {
+		watcher.Run(
+			core.WatcherConfig{
+				IterationBackoff: time.Minute,
+			},
+			core.WatcherHandlers{
+				OnInsert: func(wi []core.WatcherItem) {
+					watcherLogger.Println("inserted", len(wi))
 
-	// extractor := articles.NewExtractor()
-	// extractorLogger := newLogger("extractor")
-	// queuedExtractor := core.NewQueuedExtractor(*extractor)
+					if err := store.Insert(toItems(wi)); err != nil {
+						watcherLogger.Printf("failed to insert items: %s\n", err)
+					}
 
-	// c := make(chan string)
+					var rssItems []rss.Item
+					for _, item := range wi {
+						rssItems = append(rssItems, item.Item)
+					}
+					queuedExtractor.Enqueue(rssItems)
+				},
+				OnDelete: func(wi []core.WatcherItem) {
+					watcherLogger.Println("deleted", len(wi))
 
-	// go func() {
-	// 	watcher.Run(
-	// 		core.WatcherConfig{
-	// 			IterationBackoff: time.Minute,
-	// 		},
-	// 		core.WatcherHandlers{
-	// 			OnInsert: func(wi []core.WatcherItem) {
-	// 				watcherLogger.Println("inserted", len(wi))
+					if err := store.Delete(toItems(wi)); err != nil {
+						watcherLogger.Printf("failed to delete items: %s\n", err)
+					}
+				},
+				OnError: func(err error) {
+					watcherLogger.Println(err)
+				},
+				OnIterationBegin: func() {
+					watcherLogger.Println("iteration did begin")
+				},
+				OnIterationEnd: func() {
+					watcherLogger.Println("iteration did end")
+				},
+			},
+		)
+		c <- "watcher did complete"
+	}()
 
-	// 				var items []rss.Item
-	// 				for _, item := range wi {
-	// 					items = append(items, item.Item)
-	// 				}
-	// 				queuedExtractor.Enqueue(items)
-	// 			},
-	// 			OnDelete: func(wi []core.WatcherItem) {
-	// 				watcherLogger.Println("deleted", len(wi))
-	// 			},
-	// 			OnError: func(err error) {
-	// 				watcherLogger.Println(err)
-	// 			},
-	// 			OnIterationBegin: func() {
-	// 				watcherLogger.Println("iteration did begin")
-	// 			},
-	// 			OnIterationEnd: func() {
-	// 				watcherLogger.Println("iteration did end")
-	// 			},
-	// 		},
-	// 	)
-	// 	c <- "watcher did complete"
-	// }()
+	go func() {
+		queuedExtractor.Run(
+			core.QueuedExtractorConfig{
+				Backoff: time.Second,
+			},
+			core.QueuedExtractorHandlers{
+				OnItemExtracted: func(qei core.QueuedExtractorItem) {
+					extractorLogger.Printf("extracted item '%s'\n", qei.Item.Link)
+				},
+				OnError: func(err error) {
+					extractorLogger.Println(err)
+				},
+			},
+		)
+		c <- "extractor did complete"
+	}()
 
-	// go func() {
-	// 	queuedExtractor.Run(
-	// 		core.QueuedExtractorConfig{
-	// 			Backoff: time.Second,
-	// 		},
-	// 		core.QueuedExtractorHandlers{
-	// 			OnItemExtracted: func(qei core.QueuedExtractorItem) {
-	// 				extractorLogger.Printf("extracted item '%s'\n", qei.Item.Link)
-	// 			},
-	// 			OnError: func(err error) {
-	// 				extractorLogger.Println(err)
-	// 			},
-	// 		},
-	// 	)
-	// 	c <- "extractor did complete"
-	// }()
-
-	// fmt.Println(<-c)
+	fmt.Println(<-c)
 
 	return nil
 }
