@@ -25,6 +25,9 @@ github.com/jaytaylor/html2text
 # github.com/mattn/go-runewidth v0.0.3
 ## explicit
 github.com/mattn/go-runewidth
+# github.com/mattn/go-sqlite3 v1.14.14
+## explicit; go 1.12
+github.com/mattn/go-sqlite3
 # github.com/olekukonko/tablewriter v0.0.0-20180506121414-d4647c9c7a84
 ## explicit
 github.com/olekukonko/tablewriter
