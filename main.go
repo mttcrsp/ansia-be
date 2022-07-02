@@ -71,7 +71,7 @@ func run() error {
 	go func() {
 		watcher.Run(
 			core.WatcherConfig{
-				IterationBackoff: time.Minute,
+				IterationBackoff: time.Minute * 5,
 			},
 			core.WatcherHandlers{
 				OnInsert: func(items []core.WatcherItem) {
