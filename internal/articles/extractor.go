@@ -1,8 +1,6 @@
 package articles
 
 import (
-	"strings"
-
 	goose "github.com/advancedlogic/GoOse"
 )
 
@@ -25,7 +23,7 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 	return &Article{
 		Title:       article.Title,
 		Description: article.MetaDescription,
-		Keywords:    strings.Split(article.MetaKeywords, ","),
+		Keywords:    article.MetaKeywords,
 		Content:     article.CleanedText,
 		ImageURL:    article.TopImage,
 	}, nil
