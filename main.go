@@ -103,7 +103,7 @@ func run() error {
 	go func() {
 		queuedExtractor.Run(
 			core.QueuedExtractorConfig{
-				Backoff: time.Second,
+				Backoff: time.Second / 2,
 			},
 			core.QueuedExtractorHandlers{
 				OnItemExtracted: func(qei core.QueuedExtractorItem) {
