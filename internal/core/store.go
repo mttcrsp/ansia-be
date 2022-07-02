@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -27,11 +28,11 @@ const (
 	);
 	`
 	insertItemSQL = `
-	INSERT INTO item (item_id, title, description, url, published_at)
-		VALUES (:item_id, :title, :description, :url, :published_at);
+	INSERT INTO item (item_id, title, description, url, published_at, feed)
+		VALUES (:item_id, :title, :description, :url, :published_at, :feed);
 	`
 	deleteItemSQL = `
-	DELETE FROM item WHERE item_id = :item_id;
+	DELETE FROM item WHERE item_id = ?;
 	`
 	insertArticleSQL = `
 	INSERT INTO article (item, keywords, content, image_url)
@@ -71,8 +72,12 @@ func (s *Store) withTx(fn func(*sqlx.Tx) error) error {
 		return err
 	}
 
-	tx, err := db.BeginTx(context.Background(), nil)
-	if err == nil {
+	tx, err := db.BeginTxx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	if err := fn(tx); err != nil {
 		return err
 	}
 
@@ -93,7 +98,7 @@ func (s *Store) InsertItems(items []Item) error {
 func (s *Store) DeleteItems(items []Item) error {
 	return s.withTx(func(tx *sqlx.Tx) error {
 		for _, item := range items {
-			if _, err := tx.NamedExec(deleteItemSQL, item.ID); err != nil {
+			if _, err := tx.Exec(deleteItemSQL, item.ID); err != nil {
 				return err
 			}
 		}

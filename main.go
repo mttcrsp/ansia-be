@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"

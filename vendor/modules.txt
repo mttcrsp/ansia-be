@@ -10,6 +10,9 @@ github.com/andybalholm/cascadia
 # github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
 ## explicit
 github.com/araddon/dateparse
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
 # github.com/fatih/set v0.2.1
 ## explicit
 github.com/fatih/set
@@ -44,9 +47,21 @@ github.com/olekukonko/tablewriter
 # github.com/pkg/errors v0.8.1
 ## explicit
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 ## explicit
 github.com/ssor/bom
+# github.com/stretchr/objx v0.4.0
+## explicit; go 1.12
+github.com/stretchr/objx
+# github.com/stretchr/testify v1.8.0
+## explicit; go 1.13
+github.com/stretchr/testify
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/http
+github.com/stretchr/testify/mock
 # golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 ## explicit; go 1.11
 golang.org/x/net/html
@@ -70,3 +85,6 @@ golang.org/x/text/internal/utf8internal
 golang.org/x/text/language
 golang.org/x/text/runes
 golang.org/x/text/transform
+# gopkg.in/yaml.v3 v3.0.1
+## explicit
+gopkg.in/yaml.v3
