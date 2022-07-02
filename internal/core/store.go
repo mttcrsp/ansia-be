@@ -66,7 +66,7 @@ func (s *Store) db() (*sqlx.DB, error) {
 		return s.database, nil
 	}
 
-	database, err := sqlx.Connect("sqlite3", "file::memory:?cache=shared")
+	database, err := sqlx.Connect("sqlite3", "file::memory:?cache=shared&mode=rwc")
 	if err != nil {
 		return nil, err
 	}

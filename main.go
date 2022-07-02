@@ -3,12 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
-
 	"github.com/mttcrsp/ansiabe/internal/articles"
 	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
@@ -125,13 +123,99 @@ func run() error {
 		c <- "extractor did complete"
 	}()
 
-	go func() {
-		r := gin.Default()
-		r.GET("/ping", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "pong",
+	feedsLogger := newLogger("server")
+
+	mainFeeds, err := fl.LoadMain()
+	if err != nil {
+		feedsLogger.Println("failed to load main feeds:", err)
+		return err
+	}
+
+	regionalFeeds, err := fl.LoadRegional()
+	if err != nil {
+		feedsLogger.Println("failed to load main feeds:", err)
+		return err
+	}
+
+	feedsHandler := func(c *gin.Context) {
+		type ResponseFeed struct {
+			Slug  string `json:"slug"`
+			Title string `json:"title"`
+		}
+
+		type ResponseCollection struct {
+			Slug  string         `json:"slug"`
+			Name  string         `json:"name"`
+			Feeds []ResponseFeed `json:"feeds"`
+		}
+
+		type Response struct {
+			Collections []ResponseCollection `json:"collections"`
+		}
+
+		mainCollection := ResponseCollection{
+			Slug: "principali",
+			Name: "Principali",
+		}
+		for _, feed := range mainFeeds {
+			mainCollection.Feeds = append(mainCollection.Feeds, ResponseFeed{
+				Slug:  feed.Slug(),
+				Title: feed.Title,
 			})
+		}
+		regionalCollection := ResponseCollection{
+			Slug: "regionali",
+			Name: "Regionali",
+		}
+		for _, feed := range regionalFeeds {
+			regionalCollection.Feeds = append(regionalCollection.Feeds, ResponseFeed{
+				Slug:  feed.Slug(),
+				Title: feed.Title,
+			})
+		}
+		c.JSON(200, Response{
+			Collections: []ResponseCollection{mainCollection, regionalCollection},
 		})
+	}
+
+	feedHandler := func(c *gin.Context) {
+		feedSlug := c.Param("feed")
+
+		var feed *feeds.Feed
+		for _, f := range append(mainFeeds, regionalFeeds...) {
+			if f.Slug() == feedSlug {
+				feed = &f
+			}
+		}
+
+		if feed == nil {
+			c.Status(404)
+			return
+		}
+
+		feedItems, err := store.GetFeed(feedSlug)
+		if err != nil {
+			c.Status(500)
+			return
+		}
+
+		if len(feedItems) == 0 {
+			c.Status(400)
+			return
+		}
+
+		type Response struct {
+			Items []core.FeedItem `json:"items"`
+		}
+
+		c.JSON(200, Response{Items: feedItems})
+	}
+
+	go func() {
+		// gin.SetMode(gin.ReleaseMode)
+		r := gin.Default()
+		r.GET("/feeds", feedsHandler)
+		r.GET("/feed/:feed", feedHandler)
 		r.Run()
 		c <- "server did complete"
 	}()

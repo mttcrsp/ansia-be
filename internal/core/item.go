@@ -4,8 +4,6 @@ import (
 	"hash/fnv"
 	"time"
 
-	"github.com/gosimple/slug"
-
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
 )
@@ -34,6 +32,6 @@ func NewItem(item rss.Item, feed feeds.Feed) (*Item, error) {
 		Description: item.Description,
 		URL:         item.Link,
 		PublishedAt: publishedAt,
-		Feed:        slug.Make(feed.Title),
+		Feed:        feed.Slug(),
 	}, nil
 }
