@@ -11,6 +11,7 @@ import (
 	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
+	"github.com/mttcrsp/ansiabe/internal/server"
 )
 
 func main() {
@@ -137,79 +138,22 @@ func run() error {
 		return err
 	}
 
-	feedsHandler := func(c *gin.Context) {
-		type ResponseFeed struct {
-			Slug  string `json:"slug"`
-			Title string `json:"title"`
-		}
+	feedHandler := server.FeedBySlug(
+		server.FeedBySlugVals{
+			MainFeeds:     mainFeeds,
+			RegionalFeeds: regionalFeeds,
+		},
+		server.FeedBySlugDeps{
+			Store: store,
+		},
+	)
 
-		type ResponseCollection struct {
-			Slug  string         `json:"slug"`
-			Name  string         `json:"name"`
-			Feeds []ResponseFeed `json:"feeds"`
-		}
-
-		type Response struct {
-			Collections []ResponseCollection `json:"collections"`
-		}
-
-		mainCollection := ResponseCollection{
-			Slug: "principali",
-			Name: "Principali",
-		}
-		for _, feed := range mainFeeds {
-			mainCollection.Feeds = append(mainCollection.Feeds, ResponseFeed{
-				Slug:  feed.Slug(),
-				Title: feed.Title,
-			})
-		}
-		regionalCollection := ResponseCollection{
-			Slug: "regionali",
-			Name: "Regionali",
-		}
-		for _, feed := range regionalFeeds {
-			regionalCollection.Feeds = append(regionalCollection.Feeds, ResponseFeed{
-				Slug:  feed.Slug(),
-				Title: feed.Title,
-			})
-		}
-		c.JSON(200, Response{
-			Collections: []ResponseCollection{mainCollection, regionalCollection},
-		})
-	}
-
-	feedHandler := func(c *gin.Context) {
-		feedSlug := c.Param("feed")
-
-		var feed *feeds.Feed
-		for _, f := range append(mainFeeds, regionalFeeds...) {
-			if f.Slug() == feedSlug {
-				feed = &f
-			}
-		}
-
-		if feed == nil {
-			c.Status(404)
-			return
-		}
-
-		feedItems, err := store.GetFeed(feedSlug)
-		if err != nil {
-			c.Status(500)
-			return
-		}
-
-		if len(feedItems) == 0 {
-			c.Status(400)
-			return
-		}
-
-		type Response struct {
-			Items []core.FeedItem `json:"items"`
-		}
-
-		c.JSON(200, Response{Items: feedItems})
-	}
+	feedsHandler := server.Feeds(
+		server.FeedsVals{
+			MainFeeds:     mainFeeds,
+			RegionalFeeds: regionalFeeds,
+		},
+	)
 
 	go func() {
 		gin.SetMode(gin.ReleaseMode)
