@@ -107,3 +107,11 @@ func (s *Store) InsertArticle(article Article) error {
 		return err
 	})
 }
+
+func (s *Store) GetItems() ([]Item, error) {
+	items := []Item{}
+	err := s.withTx(func(tx *sqlx.Tx) error {
+		return tx.Select(&items, "SELECT * FROM item LIMIT 3")
+	})
+	return items, err
+}
