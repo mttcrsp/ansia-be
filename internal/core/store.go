@@ -20,8 +20,6 @@ const (
 
 	CREATE TABLE IF NOT EXISTS article (
 		item_id INTEGER NOT NULL PRIMARY KEY,
-		title STRING NOT NULL,
-		description STRING NOT NULL,
 		keywords STRING NOT NULL,
 		content STRING NOT NULL,
 		image_url STRING,
@@ -34,6 +32,10 @@ const (
 	`
 	deleteItemSQL = `
 	DELETE FROM item WHERE item_id = :item_id;
+	`
+	insertArticleSQL = `
+	INSERT INTO article (item, keywords, content, image_url)
+		VALUES (:item, :keywords, :content, :image_url)
 	`
 )
 
@@ -77,7 +79,7 @@ func (s *Store) withTx(fn func(*sqlx.Tx) error) error {
 	return tx.Commit()
 }
 
-func (s *Store) Insert(items []Item) error {
+func (s *Store) InsertItems(items []Item) error {
 	return s.withTx(func(tx *sqlx.Tx) error {
 		for _, item := range items {
 			if _, err := tx.NamedExec(insertItemSQL, item); err != nil {
@@ -88,7 +90,7 @@ func (s *Store) Insert(items []Item) error {
 	})
 }
 
-func (s *Store) Delete(items []Item) error {
+func (s *Store) DeleteItems(items []Item) error {
 	return s.withTx(func(tx *sqlx.Tx) error {
 		for _, item := range items {
 			if _, err := tx.NamedExec(deleteItemSQL, item.ID); err != nil {
@@ -96,5 +98,12 @@ func (s *Store) Delete(items []Item) error {
 			}
 		}
 		return nil
+	})
+}
+
+func (s *Store) InsertArticle(article Article) error {
+	return s.withTx(func(tx *sqlx.Tx) error {
+		_, err := tx.NamedExec(insertArticleSQL, article)
+		return err
 	})
 }

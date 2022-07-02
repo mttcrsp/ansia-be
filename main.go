@@ -53,6 +53,7 @@ func run() error {
 	extractorLogger := newLogger("extractor")
 	queuedExtractor := core.NewQueuedExtractor(*extractor)
 
+	storeLogger := newLogger("store")
 	store := core.Store{}
 
 	c := make(chan string)
@@ -66,9 +67,10 @@ func run() error {
 				OnInsert: func(wi []core.WatcherItem) {
 					watcherLogger.Println("inserted", len(wi))
 
-					if err := store.Insert(toItems(wi)); err != nil {
-						watcherLogger.Printf("failed to insert items: %s\n", err)
+					if err := store.InsertItems(toItems(wi)); err != nil {
+						storeLogger.Printf("failed to insert items: %s\n", err)
 					}
+					storeLogger.Printf("did insert items")
 
 					var rssItems []rss.Item
 					for _, item := range wi {
@@ -79,9 +81,10 @@ func run() error {
 				OnDelete: func(wi []core.WatcherItem) {
 					watcherLogger.Println("deleted", len(wi))
 
-					if err := store.Delete(toItems(wi)); err != nil {
-						watcherLogger.Printf("failed to delete items: %s\n", err)
+					if err := store.DeleteItems(toItems(wi)); err != nil {
+						storeLogger.Printf("failed to delete items: %s\n", err)
 					}
+					storeLogger.Printf("did delete items")
 				},
 				OnError: func(err error) {
 					watcherLogger.Println(err)
@@ -105,6 +108,12 @@ func run() error {
 			core.QueuedExtractorHandlers{
 				OnItemExtracted: func(qei core.QueuedExtractorItem) {
 					extractorLogger.Printf("extracted item '%s'\n", qei.Item.Link)
+
+					article := core.NewArticle(qei.Article)
+					if err := store.InsertArticle(article); err != nil {
+						storeLogger.Printf("failed to insert article: %s\n", err)
+					}
+					storeLogger.Printf("did insert article '%s'", qei.Item.Link)
 				},
 				OnError: func(err error) {
 					extractorLogger.Println(err)
