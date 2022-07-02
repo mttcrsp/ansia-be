@@ -212,7 +212,7 @@ func run() error {
 	}
 
 	go func() {
-		// gin.SetMode(gin.ReleaseMode)
+		gin.SetMode(gin.ReleaseMode)
 		r := gin.Default()
 		r.GET("/feeds", feedsHandler)
 		r.GET("/feeds/:feed", feedHandler)
