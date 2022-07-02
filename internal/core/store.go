@@ -46,7 +46,8 @@ const (
 	getFeedSQL = `
 	SELECT *
 	FROM item i JOIN article a ON i.item_id = a.item_id
-	WHERE i.feed = ?;
+	WHERE i.feed = ?
+	ORDER BY i.published_at;
 	`
 )
 
