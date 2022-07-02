@@ -46,6 +46,11 @@ const (
 	getArticlesSQL = `
 	SELECT * FROM article;
 	`
+	getFeedSQL = `
+	SELECT *
+	FROM item i JOIN article a ON i.item_id = a.item_id
+	WHERE i.feed = ?;
+	`
 )
 
 type Store struct {
@@ -141,4 +146,15 @@ func (s *Store) GetArticles() ([]Article, error) {
 	articles := []Article{}
 	err = db.Select(&articles, getArticlesSQL)
 	return articles, err
+}
+
+func (s *Store) GetFeed(feed string) ([]FeedItem, error) {
+	db, err := s.db()
+	if err != nil {
+		return nil, err
+	}
+
+	items := []FeedItem{}
+	err = db.Select(&items, getFeedSQL, feed)
+	return items, err
 }
