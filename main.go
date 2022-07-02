@@ -24,6 +24,7 @@ func main() {
 func run() error {
 	feedsLoader := feeds.Loader{}
 	rssLoader := rss.Loader{}
+	store := core.Store{}
 
 	watcherLogger := newLogger("watcher")
 	watcher := core.NewWatcher(feedsLoader, rssLoader)
@@ -32,12 +33,8 @@ func run() error {
 	extractorLogger := newLogger("extractor")
 	queuedExtractor := core.NewQueuedExtractor(*extractor)
 
-	storeLogger := newLogger("store")
-	store := core.Store{}
-
 	mainFeeds, regionalFeeds, err := feedsLoader.LoadAll()
 	if err != nil {
-		newLogger("feeds").Println("failed to load feeds:", err)
 		return err
 	}
 
@@ -78,26 +75,29 @@ func run() error {
 			},
 			core.WatcherHandlers{
 				OnInsert: func(items []core.WatcherItem) {
-					watcherLogger.Println("inserted", len(items))
+					watcherLogger.Println("found inserted", len(items))
 
 					if err := store.InsertItems(toItems(items, watcherLogger)); err != nil {
-						storeLogger.Println("failed to insert items:", err)
+						watcherLogger.Println("failed to insert items:", err)
+						return
 					}
-					storeLogger.Println("did insert items")
+					watcherLogger.Println("did insert items")
 
 					var rssItems []rss.Item
 					for _, item := range items {
 						rssItems = append(rssItems, item.Item)
 					}
+
 					queuedExtractor.Enqueue(rssItems)
 				},
 				OnDelete: func(items []core.WatcherItem) {
-					watcherLogger.Println("deleted", len(items))
+					watcherLogger.Println("found deleted", len(items))
 
 					if err := store.DeleteItems(toItems(items, watcherLogger)); err != nil {
-						storeLogger.Println("failed to delete items:", err)
+						watcherLogger.Println("failed to delete items:", err)
+					} else {
+						watcherLogger.Println("did delete items")
 					}
-					storeLogger.Println("did delete items")
 				},
 				OnError: func(err error) {
 					watcherLogger.Println(err)
@@ -110,6 +110,7 @@ func run() error {
 				},
 			},
 		)
+
 		c <- "watcher did exit"
 	}()
 
@@ -124,15 +125,17 @@ func run() error {
 
 					article := core.NewArticle(item.Article, item.Item)
 					if err := store.InsertArticle(article); err != nil {
-						storeLogger.Printf("failed to insert article '%d': %s\n", article.ItemID, err)
+						extractorLogger.Printf("failed to insert article '%s': %s\n", item.Item.Link, err)
+					} else {
+						extractorLogger.Printf("did insert article '%d'\n", item.Item.ID())
 					}
-					storeLogger.Printf("did insert article '%s'\n", item.Item.Link)
 				},
 				OnError: func(err error) {
 					extractorLogger.Println(err)
 				},
 			},
 		)
+
 		c <- "extractor did exit"
 	}()
 
