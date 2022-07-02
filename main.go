@@ -29,13 +29,12 @@ func run() error {
 		return logger
 	}
 
-	conversionLogger := newLogger("conversion")
-	toItems := func(wis []core.WatcherItem) []core.Item {
+	toItems := func(wis []core.WatcherItem, logger *log.Logger) []core.Item {
 		var cis []core.Item
 		for _, wi := range wis {
 			ci, err := core.NewItem(wi.Item, wi.Feed)
 			if err != nil {
-				conversionLogger.Printf("failed to convert item '%s': %s", wi.Item.Link, err)
+				logger.Printf("failed to convert item '%s': %s\n", wi.Item.Link, err)
 				continue
 			}
 
@@ -68,10 +67,10 @@ func run() error {
 				OnInsert: func(wi []core.WatcherItem) {
 					watcherLogger.Println("inserted", len(wi))
 
-					if err := store.InsertItems(toItems(wi)); err != nil {
-						storeLogger.Printf("failed to insert items: %s\n", err)
+					if err := store.InsertItems(toItems(wi, watcherLogger)); err != nil {
+						storeLogger.Println("failed to insert items:", err)
 					}
-					storeLogger.Printf("did insert items")
+					storeLogger.Println("did insert items")
 
 					var rssItems []rss.Item
 					for _, item := range wi {
@@ -82,16 +81,16 @@ func run() error {
 				OnDelete: func(wi []core.WatcherItem) {
 					watcherLogger.Println("deleted", len(wi))
 
-					if err := store.DeleteItems(toItems(wi)); err != nil {
-						storeLogger.Printf("failed to delete items: %s\n", err)
+					if err := store.DeleteItems(toItems(wi, watcherLogger)); err != nil {
+						storeLogger.Println("failed to delete items:", err)
 					}
-					storeLogger.Printf("did delete items")
+					storeLogger.Println("did delete items")
 				},
 				OnError: func(err error) {
 					watcherLogger.Println(err)
 				},
 				OnIterationBegin: func() {
-					watcherLogger.Println("iteration did begin")
+					watcherLogger.Println("iteration will begin")
 				},
 				OnIterationEnd: func() {
 					watcherLogger.Println("iteration did end")
@@ -114,7 +113,7 @@ func run() error {
 					if err := store.InsertArticle(article); err != nil {
 						storeLogger.Printf("failed to insert article '%d': %s\n", article.ItemID, err)
 					}
-					storeLogger.Printf("did insert article '%s'", qei.Item.Link)
+					storeLogger.Printf("did insert article '%s'\n", qei.Item.Link)
 				},
 				OnError: func(err error) {
 					extractorLogger.Println(err)
