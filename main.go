@@ -215,7 +215,7 @@ func run() error {
 		// gin.SetMode(gin.ReleaseMode)
 		r := gin.Default()
 		r.GET("/feeds", feedsHandler)
-		r.GET("/feed/:feed", feedHandler)
+		r.GET("/feeds/:feed", feedHandler)
 		r.Run()
 		c <- "server did complete"
 	}()
