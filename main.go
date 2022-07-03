@@ -62,7 +62,7 @@ func run() error {
 
 		r := gin.Default()
 		r.GET("/v1/feeds", feedsHandler)
-		r.GET("/v1/feeds/:feed", feedBySlugHandler)
+		r.GET("/v1/feeds/:feed/items", feedBySlugHandler)
 		r.Run()
 
 		c <- "server did exit"
