@@ -12,43 +12,34 @@ type FeedsVals struct {
 
 func Feeds(vals FeedsVals) func(c *gin.Context) {
 	type ResponseFeed struct {
-		Slug  string `json:"slug"`
-		Title string `json:"title"`
-	}
-
-	type ResponseCollection struct {
-		Slug  string         `json:"slug"`
-		Name  string         `json:"name"`
-		Feeds []ResponseFeed `json:"feeds"`
+		Slug           string `json:"slug"`
+		Title          string `json:"title"`
+		CollectionSlug string `json:"collection"`
 	}
 
 	type Response struct {
-		Collections []ResponseCollection `json:"collections"`
+		Feeds []ResponseFeed `json:"feeds"`
 	}
 
 	return func(c *gin.Context) {
-		mainCollection := ResponseCollection{
-			Slug: "principali",
-			Name: "Principali",
-		}
+		response := Response{}
+
 		for _, feed := range vals.MainFeeds {
-			mainCollection.Feeds = append(mainCollection.Feeds, ResponseFeed{
-				Slug:  feed.Slug(),
-				Title: feed.Title,
+			response.Feeds = append(response.Feeds, ResponseFeed{
+				Slug:           feed.Slug(),
+				Title:          feed.Title,
+				CollectionSlug: "principali",
 			})
 		}
-		regionalCollection := ResponseCollection{
-			Slug: "regionali",
-			Name: "Regionali",
-		}
+
 		for _, feed := range vals.RegionalFeeds {
-			regionalCollection.Feeds = append(regionalCollection.Feeds, ResponseFeed{
-				Slug:  feed.Slug(),
-				Title: feed.Title,
+			response.Feeds = append(response.Feeds, ResponseFeed{
+				Slug:           feed.Slug(),
+				Title:          feed.Title,
+				CollectionSlug: "regionali",
 			})
 		}
-		c.JSON(200, Response{
-			Collections: []ResponseCollection{mainCollection, regionalCollection},
-		})
+
+		c.JSON(200, response)
 	}
 }
