@@ -61,8 +61,8 @@ func run() error {
 		gin.SetMode(gin.ReleaseMode)
 
 		r := gin.Default()
-		r.GET("/feeds", feedsHandler)
-		r.GET("/feeds/:feed", feedBySlugHandler)
+		r.GET("/v1/feeds", feedsHandler)
+		r.GET("/v1/feeds/:feed", feedBySlugHandler)
 		r.Run()
 
 		c <- "server did exit"
