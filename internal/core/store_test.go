@@ -51,6 +51,7 @@ func TestStore_Integration(t *testing.T) {
 	assert.Nil(t, err)
 
 	articles, err := s.GetArticles()
+	assert.Nil(t, err)
 	assert.Equal(t, 1, len(articles))
 
 	feedItems, err := s.GetFeed("feed-1")
@@ -73,6 +74,7 @@ func TestStore_Integration(t *testing.T) {
 	assert.Equal(t, 1, len(items))
 
 	articles, err = s.GetArticles()
+	assert.Nil(t, err)
 	assert.Equal(t, 0, len(articles))
 
 	err = s.DeleteItems([]Item{inputItems[1]})

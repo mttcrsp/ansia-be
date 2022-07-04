@@ -1,6 +1,8 @@
 package core
 
 import (
+	"context"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,8 +16,7 @@ const (
 		title STRING NOT NULL,
 		description STRING NOT NULL,
 		url STRING NOT NULL,
-		published_at DATETIME NOT NULL,
-		feed STRING NOT NULL
+		published_at DATETIME NOT NULL
 	);
 
 	CREATE TABLE IF NOT EXISTS article (
@@ -25,28 +26,41 @@ const (
 		image_url STRING,
 		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
 	);
+
+	CREATE TABLE IF NOT EXISTS item_feed (
+		item_id INTEGER NOT NULL PRIMARY KEY,
+		feed STRING NOT NULL,
+		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
+	);
 	`
 	insertItemSQL = `
-	INSERT INTO item (item_id, title, description, url, published_at, feed)
-		VALUES (:item_id, :title, :description, :url, :published_at, :feed);
+	INSERT INTO item (item_id, title, description, url, published_at)
+		VALUES (:item_id, :title, :description, :url, :published_at);
 	`
 	deleteItemSQL = `
 	DELETE FROM item WHERE item_id = ?;
 	`
 	getItemsSql = `
-	SELECT * FROM item;
+	SELECT * 
+	FROM item i JOIN item_feed if ON i.item_id = if.item_id;
+	`
+	insertItemFeedSQL = `
+	INSERT INTO item_feed (item_id, feed)
+		VALUES (:item_id, :feed);
 	`
 	insertArticleSQL = `
 	INSERT INTO article (item_id, keywords, content, image_url)
-		VALUES (:item_id, :keywords, :content, :image_url)
+	VALUES (:item_id, :keywords, :content, :image_url)
 	`
 	getArticlesSQL = `
 	SELECT * FROM article;
 	`
 	getFeedSQL = `
 	SELECT *
-	FROM item i JOIN article a ON i.item_id = a.item_id
-	WHERE i.feed = ?
+	FROM item i 
+		JOIN article a ON i.item_id = a.item_id
+		JOIN item_feed if ON i.item_id = if.item_id
+	WHERE if.feed = ?
 	ORDER BY i.published_at;
 	`
 )
@@ -76,12 +90,28 @@ func (s *Store) withDB(fn func(db *sqlx.DB) error) error {
 
 func (s *Store) InsertItems(items []Item) error {
 	return s.withDB(func(db *sqlx.DB) error {
+		tx, err := db.BeginTxx(context.Background(), nil)
+		defer func() {
+			if err != nil {
+				tx.Rollback()
+			}
+		}()
+
+		if err != nil {
+			return err
+		}
+
 		for _, item := range items {
-			if _, err := db.NamedExec(insertItemSQL, item); err != nil {
+			if _, err := tx.NamedExec(insertItemSQL, item); err != nil {
+				return err
+			}
+
+			if _, err := tx.NamedExec(insertItemFeedSQL, item); err != nil {
 				return err
 			}
 		}
-		return nil
+
+		return tx.Commit()
 	})
 }
 
