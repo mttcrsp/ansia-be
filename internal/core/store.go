@@ -2,9 +2,13 @@ package core
 
 import (
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mttcrsp/ansiabe/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/feeds"
+	"github.com/mttcrsp/ansiabe/internal/rss"
 )
 
 const (
@@ -19,6 +23,12 @@ const (
 		published_at DATETIME NOT NULL
 	);
 
+	CREATE TABLE IF NOT EXISTS item_feed (
+		item_id INTEGER NOT NULL,
+		feed STRING NOT NULL,
+		PRIMARY KEY (item_id, feed)
+	);
+
 	CREATE TABLE IF NOT EXISTS article (
 		item_id INTEGER NOT NULL PRIMARY KEY,
 		keywords STRING NOT NULL,
@@ -26,34 +36,18 @@ const (
 		image_url STRING,
 		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
 	);
-
-	CREATE TABLE IF NOT EXISTS item_feed (
-		item_id INTEGER NOT NULL PRIMARY KEY,
-		feed STRING NOT NULL,
-		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
-	);
 	`
 	insertItemSQL = `
-	INSERT INTO item (item_id, title, description, url, published_at)
+	INSERT OR REPLACE INTO item (item_id, title, description, url, published_at)
 		VALUES (:item_id, :title, :description, :url, :published_at);
 	`
-	deleteItemSQL = `
-	DELETE FROM item WHERE item_id = ?;
-	`
-	getItemsSql = `
-	SELECT * 
-	FROM item i JOIN item_feed if ON i.item_id = if.item_id;
-	`
 	insertItemFeedSQL = `
-	INSERT INTO item_feed (item_id, feed)
+	INSERT OR REPLACE INTO item_feed (item_id, feed)
 		VALUES (:item_id, :feed);
 	`
 	insertArticleSQL = `
 	INSERT INTO article (item_id, keywords, content, image_url)
-	VALUES (:item_id, :keywords, :content, :image_url)
-	`
-	getArticlesSQL = `
-	SELECT * FROM article;
+		VALUES (:item_id, :keywords, :content, :image_url)
 	`
 	getFeedSQL = `
 	SELECT *
@@ -61,7 +55,8 @@ const (
 		JOIN article a ON i.item_id = a.item_id
 		JOIN item_feed if ON i.item_id = if.item_id
 	WHERE if.feed = ?
-	ORDER BY i.published_at;
+	ORDER BY i.published_at
+	LIMIT 30;
 	`
 )
 
@@ -88,7 +83,7 @@ func (s *Store) withDB(fn func(db *sqlx.DB) error) error {
 	return fn(s.db)
 }
 
-func (s *Store) InsertItems(items []Item) error {
+func (s *Store) InsertFeedItems(feed feeds.Feed, rss rss.RSS) error {
 	return s.withDB(func(db *sqlx.DB) error {
 		tx, err := db.BeginTxx(context.Background(), nil)
 		defer func() {
@@ -101,12 +96,17 @@ func (s *Store) InsertItems(items []Item) error {
 			return err
 		}
 
-		for _, item := range items {
-			if _, err := tx.NamedExec(insertItemSQL, item); err != nil {
+		for _, item := range rss.Channel.Items {
+			itemRow, err := newItemRow(item)
+			if err != nil {
+				return err
+			}
+			if _, err := tx.NamedExec(insertItemSQL, itemRow); err != nil {
 				return err
 			}
 
-			if _, err := tx.NamedExec(insertItemFeedSQL, item); err != nil {
+			itemFeedRow := newItemFeedRow(item, feed)
+			if _, err := tx.NamedExec(insertItemFeedSQL, itemFeedRow); err != nil {
 				return err
 			}
 		}
@@ -115,38 +115,12 @@ func (s *Store) InsertItems(items []Item) error {
 	})
 }
 
-func (s *Store) DeleteItems(items []Item) error {
+func (s *Store) InsertArticle(item rss.Item, article articles.Article) error {
 	return s.withDB(func(db *sqlx.DB) error {
-		for _, item := range items {
-			if _, err := db.Exec(deleteItemSQL, item.ID); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (s *Store) InsertArticle(article Article) error {
-	return s.withDB(func(db *sqlx.DB) error {
-		_, err := db.NamedExec(insertArticleSQL, article)
+		articleRow := *newArticleRow(item, article)
+		_, err := db.NamedExec(insertArticleSQL, articleRow)
 		return err
 	})
-}
-
-func (s *Store) GetItems() ([]Item, error) {
-	items := []Item{}
-	err := s.withDB(func(db *sqlx.DB) error {
-		return db.Select(&items, getItemsSql)
-	})
-	return items, err
-}
-
-func (s *Store) GetArticles() ([]Article, error) {
-	articles := []Article{}
-	err := s.withDB(func(db *sqlx.DB) error {
-		return db.Select(&articles, getArticlesSQL)
-	})
-	return articles, err
 }
 
 func (s *Store) GetFeed(feed string) ([]FeedItem, error) {
@@ -155,4 +129,55 @@ func (s *Store) GetFeed(feed string) ([]FeedItem, error) {
 		return db.Select(&items, getFeedSQL, feed)
 	})
 	return items, err
+}
+
+type itemRow struct {
+	ID          int64     `db:"item_id"`
+	Title       string    `db:"title"`
+	Description string    `db:"description"`
+	URL         string    `db:"url"`
+	PublishedAt time.Time `db:"published_at"`
+}
+
+type itemFeedRow struct {
+	ItemID int64  `db:"item_id"`
+	Feed   string `db:"feed"`
+}
+
+type articleRow struct {
+	ItemID   int64  `db:"item_id"`
+	Keywords string `db:"keywords"`
+	Content  string `db:"content"`
+	ImageURL string `db:"image_url"`
+}
+
+func newItemRow(item rss.Item) (*itemRow, error) {
+	publishedAt, err := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", item.PubDateRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	return &itemRow{
+		ID:          item.ID(),
+		Title:       item.Title,
+		Description: item.Description,
+		URL:         item.Link,
+		PublishedAt: publishedAt,
+	}, nil
+}
+
+func newItemFeedRow(item rss.Item, feed feeds.Feed) *itemFeedRow {
+	return &itemFeedRow{
+		ItemID: item.ID(),
+		Feed:   feed.Slug(),
+	}
+}
+
+func newArticleRow(item rss.Item, article articles.Article) *articleRow {
+	return &articleRow{
+		ItemID:   item.ID(),
+		Keywords: article.Keywords,
+		Content:  article.Content,
+		ImageURL: article.ImageURL,
+	}
 }

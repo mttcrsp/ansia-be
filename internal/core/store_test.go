@@ -2,85 +2,90 @@ package core
 
 import (
 	"testing"
-	"time"
 
+	"github.com/mttcrsp/ansiabe/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/feeds"
+	"github.com/mttcrsp/ansiabe/internal/rss"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStore_Integration(t *testing.T) {
-	time := time.Now()
-
-	inputArticle := Article{
-		ItemID:   1,
-		Keywords: "keywords",
-		Content:  "content",
-		ImageURL: "image_url",
+	inputFeed := feeds.Feed{
+		Title: "feed-title-1",
+		URL:   "feed-url-1",
 	}
-	inputItem1 := Item{
-		ID:          1,
-		Title:       "title-1",
-		Description: "description-1",
-		URL:         "url-1",
-		PublishedAt: time,
-		Feed:        "feed-1",
+	inputArticle1 := articles.Article{
+		Keywords: "article-keywords-1",
+		Content:  "article-content-1",
+		ImageURL: "article-image_url-1",
 	}
-	inputItem2 := Item{
-		ID:          2,
-		Title:       "title-2",
-		Description: "description-2",
-		URL:         "url-2",
-		PublishedAt: time,
-		Feed:        "feed-2",
+	inputArticle2 := articles.Article{
+		Keywords: "article-keywords-2",
+		Content:  "article-content-2",
+		ImageURL: "article-image_url-2",
 	}
-	inputItems := []Item{inputItem1, inputItem2}
+	inputRSSItem1 := rss.Item{
+		Title:       "item-title-1",
+		Description: "item-description-1",
+		Link:        "item-link-1",
+		PubDateRaw:  "Mon, 2 Jan 2006 15:04:05 -0700",
+	}
+	inputRSSItem2 := rss.Item{
+		Title:       "item-title-2",
+		Description: "item-description-2",
+		Link:        "item-link-2",
+		PubDateRaw:  "Mon, 2 Jan 2006 15:04:06 -0700",
+	}
+	inputRSS1 := rss.RSS{
+		Channel: rss.Channel{
+			Items: []rss.Item{inputRSSItem1},
+		},
+	}
+	inputRSS2 := rss.RSS{
+		Channel: rss.Channel{
+			Items: []rss.Item{inputRSSItem2},
+		},
+	}
 
 	s := &Store{}
-	err := s.InsertItems(inputItems)
+
+	err := s.InsertFeedItems(inputFeed, inputRSS1)
 	assert.Nil(t, err)
 
-	items, err := s.GetItems()
+	result, err := s.GetFeed(inputFeed.Slug())
 	assert.Nil(t, err)
-	assert.Equal(t, len(inputItems), len(items))
-	assert.Equal(t, inputItems[0].ID, items[0].ID)
-	assert.Equal(t, inputItems[0].Title, items[0].Title)
-	assert.Equal(t, inputItems[0].Description, items[0].Description)
-	assert.Equal(t, inputItems[0].URL, items[0].URL)
-	assert.Equal(t, inputItems[0].Feed, items[0].Feed)
+	assert.Equal(t, []FeedItem{}, result)
 
-	err = s.InsertArticle(inputArticle)
+	err = s.InsertArticle(inputRSSItem1, inputArticle1)
 	assert.Nil(t, err)
 
-	articles, err := s.GetArticles()
+	result, err = s.GetFeed(inputFeed.Slug())
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(articles))
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, int64(-8237185718998111525), result[0].ItemID)
+	assert.Equal(t, "item-title-1", result[0].Title)
+	assert.Equal(t, "item-description-1", result[0].Description)
+	assert.Equal(t, "item-link-1", result[0].URL)
+	assert.Equal(t, "feed-title-1", result[0].Feed)
+	assert.Equal(t, "article-keywords-1", result[0].Keywords)
+	assert.Equal(t, "article-content-1", result[0].Content)
+	assert.Equal(t, "article-image_url-1", result[0].ImageURL)
 
-	feedItems, err := s.GetFeed("feed-1")
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(feedItems))
-	assert.Equal(t, inputItems[0].ID, feedItems[0].ItemID)
-	assert.Equal(t, inputItems[0].Title, feedItems[0].Title)
-	assert.Equal(t, inputItems[0].Description, feedItems[0].Description)
-	assert.Equal(t, inputItems[0].URL, feedItems[0].URL)
-	assert.Equal(t, inputItems[0].Feed, feedItems[0].Feed)
-	assert.Equal(t, "keywords", feedItems[0].Keywords)
-	assert.Equal(t, "content", feedItems[0].Content)
-	assert.Equal(t, "image_url", feedItems[0].ImageURL)
-
-	err = s.DeleteItems([]Item{inputItems[0]})
+	err = s.InsertFeedItems(inputFeed, inputRSS2)
 	assert.Nil(t, err)
 
-	items, err = s.GetItems()
+	result, err = s.GetFeed(inputFeed.Slug())
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(items))
+	assert.Equal(t, 1, len(result))
 
-	articles, err = s.GetArticles()
-	assert.Nil(t, err)
-	assert.Equal(t, 0, len(articles))
-
-	err = s.DeleteItems([]Item{inputItems[1]})
+	err = s.InsertArticle(inputRSSItem2, inputArticle2)
 	assert.Nil(t, err)
 
-	items, err = s.GetItems()
+	result, err = s.GetFeed(inputFeed.Slug())
 	assert.Nil(t, err)
-	assert.Equal(t, 0, len(items))
+	assert.Equal(t, 2, len(result))
+	assert.Equal(t, "item-title-2", result[1].Title)
+
+	err = s.InsertFeedItems(inputFeed, inputRSS2)
+	assert.Nil(t, err)
 }
