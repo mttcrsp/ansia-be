@@ -74,29 +74,9 @@ func run() error {
 				IterationBackoff: time.Minute * 5,
 			},
 			core.WatcherHandlers{
-				OnInsert: func(items []core.WatcherItem) {
-					watcherLogger.Println("found inserted", len(items))
-
-					if err := store.InsertItems(toItems(items, watcherLogger)); err != nil {
-						watcherLogger.Println("failed to insert items:", err)
-						return
-					}
-					watcherLogger.Println("did insert items")
-
-					var rssItems []rss.Item
-					for _, item := range items {
-						rssItems = append(rssItems, item.Item)
-					}
-
-					queuedExtractor.Enqueue(rssItems)
-				},
-				OnDelete: func(items []core.WatcherItem) {
-					watcherLogger.Println("found deleted", len(items))
-
-					if err := store.DeleteItems(toItems(items, watcherLogger)); err != nil {
-						watcherLogger.Println("failed to delete items:", err)
-					} else {
-						watcherLogger.Println("did delete items")
+				OnUpdate: func(wu core.WatcherUpdate) {
+					if err := store.InsertFeedItems(wu.Feed, wu.RSS); err != nil {
+						watcherLogger.Println("failed to insert feed items:", err)
 					}
 				},
 				OnError: func(err error) {
@@ -150,7 +130,7 @@ func newLogger(identifier string) *log.Logger {
 	return logger
 }
 
-func toItems(wis []core.WatcherItem, logger *log.Logger) []core.Item {
+func toItems(wis []core.WatcherUpdate, logger *log.Logger) []core.Item {
 	var cis []core.Item
 	for _, wi := range wis {
 		ci, err := core.NewItem(wi.Item, wi.Feed)

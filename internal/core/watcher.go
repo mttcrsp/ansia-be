@@ -8,9 +8,9 @@ import (
 	"github.com/mttcrsp/ansiabe/internal/utils"
 )
 
-type WatcherItem struct {
-	Item rss.Item
+type WatcherUpdate struct {
 	Feed feeds.Feed
+	RSS  rss.RSS
 }
 
 type WatcherConfig struct {
@@ -18,8 +18,7 @@ type WatcherConfig struct {
 }
 
 type WatcherHandlers struct {
-	OnInsert         func([]WatcherItem)
-	OnDelete         func([]WatcherItem)
+	OnUpdate         func(WatcherUpdate)
 	OnIterationBegin func()
 	OnIterationEnd   func()
 	OnError          func(error)
@@ -38,6 +37,9 @@ func NewWatcher(feedsLoader feeds.Loader, rssLoader rss.Loader) *Watcher {
 }
 
 func (w *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
+	if handlers.OnUpdate == nil {
+		panic("must provide an update handler")
+	}
 	if handlers.OnError == nil {
 		panic("must provide an error handler")
 	}
@@ -48,7 +50,6 @@ func (w *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 		return func() {}
 	}
 
-	oldItems := map[string]WatcherItem{}
 	return utils.Loop(
 		config.IterationBackoff,
 		func() {
@@ -56,7 +57,6 @@ func (w *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 				handlers.OnIterationBegin()
 			}
 
-			newItems := map[string]WatcherItem{}
 			for _, feed := range append(mainFeeds, regionalFeeds...) {
 				rss, err := w.rssLoader.Load(feed.URL)
 				if err != nil {
@@ -64,43 +64,17 @@ func (w *Watcher) Run(config WatcherConfig, handlers WatcherHandlers) func() {
 					return
 				}
 
-				for _, item := range rss.Channel.Items {
-					newItems[item.Link] = WatcherItem{
+				handlers.OnUpdate(
+					WatcherUpdate{
 						Feed: feed,
-						Item: item,
-					}
-				}
-			}
-
-			if handlers.OnDelete != nil {
-				var deletedItems []WatcherItem
-				for link, item := range oldItems {
-					if _, exists := newItems[link]; !exists {
-						deletedItems = append(deletedItems, item)
-					}
-				}
-				if deletedItems != nil {
-					handlers.OnDelete(deletedItems)
-				}
-			}
-
-			if handlers.OnInsert != nil {
-				var insertedItems []WatcherItem
-				for link, item := range newItems {
-					if _, exists := oldItems[link]; !exists {
-						insertedItems = append(insertedItems, item)
-					}
-				}
-				if insertedItems != nil {
-					handlers.OnInsert(insertedItems)
-				}
+						RSS:  *rss,
+					},
+				)
 			}
 
 			if handlers.OnIterationEnd != nil {
 				handlers.OnIterationEnd()
 			}
-
-			oldItems = newItems
 		},
 	)
 }

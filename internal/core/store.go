@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -48,6 +49,9 @@ const (
 	insertArticleSQL = `
 	INSERT INTO article (item_id, keywords, content, image_url)
 		VALUES (:item_id, :keywords, :content, :image_url)
+	`
+	getArticleSQL = `
+	SELECT * FROM article WHERE item_id = ?;
 	`
 	getFeedSQL = `
 	SELECT *
@@ -121,6 +125,22 @@ func (s *Store) InsertArticle(item rss.Item, article articles.Article) error {
 		_, err := db.NamedExec(insertArticleSQL, articleRow)
 		return err
 	})
+}
+
+func (s *Store) ArticleExists(itemID int64) (bool, error) {
+	err := s.withDB(func(db *sqlx.DB) error {
+		article := articleRow{}
+		return db.Get(&article, getArticleSQL, itemID)
+	})
+
+	switch err {
+	case nil:
+		return true, nil
+	case sql.ErrNoRows:
+		return false, nil
+	default:
+		return false, err
+	}
 }
 
 func (s *Store) GetFeed(feed string) ([]FeedItem, error) {

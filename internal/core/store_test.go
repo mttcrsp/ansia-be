@@ -56,8 +56,16 @@ func TestStore_Integration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []FeedItem{}, result)
 
+	found, err := s.ArticleExists(inputRSSItem1.ID())
+	assert.Nil(t, err)
+	assert.False(t, found)
+
 	err = s.InsertArticle(inputRSSItem1, inputArticle1)
 	assert.Nil(t, err)
+
+	found, err = s.ArticleExists(inputRSSItem1.ID())
+	assert.Nil(t, err)
+	assert.True(t, found)
 
 	result, err = s.GetFeed(inputFeed.Slug())
 	assert.Nil(t, err)
