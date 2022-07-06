@@ -77,7 +77,21 @@ func run() error {
 				OnUpdate: func(wu core.WatcherUpdate) {
 					if err := store.InsertFeedItems(wu.Feed, wu.RSS); err != nil {
 						watcherLogger.Println("failed to insert feed items:", err)
+						return
 					}
+
+					var items []rss.Item
+					for _, item := range wu.RSS.Channel.Items {
+						found, err := store.ArticleExists(item.ID())
+						if err != nil {
+							watcherLogger.Println("failed to lookup article:", err)
+							continue
+						}
+						if !found {
+							items = append(items, item)
+						}
+					}
+					queuedExtractor.Enqueue(items)
 				},
 				OnError: func(err error) {
 					watcherLogger.Println(err)
@@ -102,9 +116,7 @@ func run() error {
 			core.QueuedExtractorHandlers{
 				OnItemExtracted: func(item core.QueuedExtractorItem) {
 					extractorLogger.Printf("extracted item '%s'\n", item.Item.Link)
-
-					article := core.NewArticle(item.Article, item.Item)
-					if err := store.InsertArticle(article); err != nil {
+					if err := store.InsertArticle(item.Item, item.Article); err != nil {
 						extractorLogger.Printf("failed to insert article '%s': %s\n", item.Item.Link, err)
 					} else {
 						extractorLogger.Printf("did insert article '%d'\n", item.Item.ID())
@@ -128,19 +140,4 @@ func newLogger(identifier string) *log.Logger {
 	logger.SetPrefix(fmt.Sprintf("[%s] ", identifier))
 	logger.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	return logger
-}
-
-func toItems(wis []core.WatcherUpdate, logger *log.Logger) []core.Item {
-	var cis []core.Item
-	for _, wi := range wis {
-		ci, err := core.NewItem(wi.Item, wi.Feed)
-		if err != nil {
-			logger.Printf("failed to convert item '%s': %s\n", wi.Item.Link, err)
-			continue
-		}
-
-		cis = append(cis, *ci)
-	}
-
-	return cis
 }
