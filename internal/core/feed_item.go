@@ -15,7 +15,7 @@ type FeedItem struct {
 	Feed        string    `db:"feed" json:"feed"`
 	Keywords    string    `db:"keywords" json:"keywords"`
 	Content     string    `db:"content" json:"content"`
-	ImageURL    string    `db:"image_url" json:"image_url"`
+	ImageURL    string    `db:"image_url" json:"image_url,omitempty"`
 }
 
 func (i *FeedItem) MarshalJSON() ([]byte, error) {
