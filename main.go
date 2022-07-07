@@ -22,16 +22,11 @@ func main() {
 }
 
 func run() error {
+	logger := newLogger("core")
+	extractor := articles.NewExtractor()
 	feedsLoader := feeds.Loader{}
 	rssLoader := rss.Loader{}
 	store := core.Store{}
-
-	watcherLogger := newLogger("watcher")
-	watcher := core.NewWatcher(feedsLoader, rssLoader)
-
-	extractor := articles.NewExtractor()
-	extractorLogger := newLogger("extractor")
-	queuedExtractor := core.NewQueuedExtractor(*extractor)
 
 	mainFeeds, regionalFeeds, err := feedsLoader.LoadAll()
 	if err != nil {
@@ -69,66 +64,53 @@ func run() error {
 	}()
 
 	go func() {
-		watcher.Run(
-			core.WatcherConfig{
-				IterationBackoff: time.Minute * 5,
-			},
-			core.WatcherHandlers{
-				OnUpdate: func(wu core.WatcherUpdate) {
-					if err := store.InsertFeedItems(wu.Feed, wu.RSS); err != nil {
-						watcherLogger.Println("failed to insert feed items:", err)
-						return
+		for {
+			for _, feed := range append(mainFeeds, regionalFeeds...) {
+				logger.Println("loading feed", feed.Slug())
+				rssFeed, err := rssLoader.Load(feed.URL)
+				if err != nil {
+					logger.Printf("failed to load feed '%s': %s", feed.Slug(), err)
+					time.Sleep(time.Second)
+					continue
+				}
+
+				if err = store.InsertFeedItems(feed, *rssFeed); err != nil {
+					logger.Printf("failed to insert items for feed '%s': %s", feed.Slug(), err)
+					time.Sleep(time.Second)
+					continue
+				}
+
+				for _, item := range rssFeed.Channel.Items {
+					found, err := store.ArticleExists(item.ID())
+					if err != nil {
+						logger.Printf("failed to check article availability '%d': %s", item.ID(), err)
+						time.Sleep(time.Second)
+						continue
 					}
 
-					var items []rss.Item
-					for _, item := range wu.RSS.Channel.Items {
-						found, err := store.ArticleExists(item.ID())
-						if err != nil {
-							watcherLogger.Println("failed to lookup article:", err)
-							continue
-						}
-						if !found {
-							items = append(items, item)
-						}
+					if found {
+						time.Sleep(time.Second)
+						continue
 					}
-					queuedExtractor.Enqueue(items)
-				},
-				OnError: func(err error) {
-					watcherLogger.Println(err)
-				},
-				OnIterationBegin: func() {
-					watcherLogger.Println("iteration will begin")
-				},
-				OnIterationEnd: func() {
-					watcherLogger.Println("iteration did end")
-				},
-			},
-		)
 
-		c <- "watcher did exit"
-	}()
-
-	go func() {
-		queuedExtractor.Run(
-			core.QueuedExtractorConfig{
-				Backoff: time.Second / 2,
-			},
-			core.QueuedExtractorHandlers{
-				OnItemExtracted: func(item core.QueuedExtractorItem) {
-					extractorLogger.Printf("extracted item '%s'\n", item.Item.Link)
-					if err := store.InsertArticle(item.Item, item.Article); err != nil {
-						extractorLogger.Printf("failed to insert article '%s': %s\n", item.Item.Link, err)
-					} else {
-						extractorLogger.Printf("did insert article '%d'\n", item.Item.ID())
+					logger.Println("extracting article", item.Link)
+					article, err := extractor.Extract(item.Link)
+					if err != nil {
+						logger.Printf("failed to extract article '%s': %s", item.Link, err)
+						time.Sleep(time.Second)
+						continue
 					}
-				},
-				OnError: func(err error) {
-					extractorLogger.Println(err)
-				},
-			},
-		)
 
-		c <- "extractor did exit"
+					if err = store.InsertArticle(item, *article); err != nil {
+						logger.Printf("failed to insert article '%s: %s", item.Link, err)
+						time.Sleep(time.Second)
+						continue
+					}
+				}
+			}
+
+			time.Sleep(time.Minute)
+		}
 	}()
 
 	return errors.New(<-c)
@@ -138,6 +120,5 @@ func newLogger(identifier string) *log.Logger {
 	logger := &log.Logger{}
 	logger.SetOutput(os.Stdout)
 	logger.SetPrefix(fmt.Sprintf("[%s] ", identifier))
-	logger.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	return logger
 }
