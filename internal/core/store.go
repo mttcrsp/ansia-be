@@ -59,7 +59,7 @@ const (
 		JOIN article a ON i.item_id = a.item_id
 		JOIN item_feed if ON i.item_id = if.item_id
 	WHERE if.feed = ?
-	ORDER BY i.published_at
+	ORDER BY i.published_at DESC
 	LIMIT 30;
 	`
 )

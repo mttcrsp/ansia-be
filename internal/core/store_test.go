@@ -92,7 +92,7 @@ func TestStore_Integration(t *testing.T) {
 	result, err = s.GetFeed(inputFeed.Slug())
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(result))
-	assert.Equal(t, "item-title-2", result[1].Title)
+	assert.Equal(t, "item-title-2", result[0].Title)
 
 	err = s.InsertFeedItems(inputFeed, inputRSS2)
 	assert.Nil(t, err)
