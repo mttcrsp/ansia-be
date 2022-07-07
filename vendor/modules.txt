@@ -110,6 +110,9 @@ github.com/ssor/bom
 # github.com/stretchr/testify v1.8.0
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
+# github.com/sundy-li/html2article v0.0.0-20180131134645-09ac198090c2
+## explicit
+github.com/sundy-li/html2article
 # github.com/ugorji/go/codec v1.2.7
 ## explicit; go 1.11
 github.com/ugorji/go/codec
