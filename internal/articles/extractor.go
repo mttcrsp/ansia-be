@@ -1,6 +1,8 @@
 package articles
 
 import (
+	"strings"
+
 	goose "github.com/advancedlogic/GoOse"
 	"github.com/sundy-li/html2article"
 )
@@ -31,11 +33,17 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 		return nil, err
 	}
 
+	content := alternateArticle.Content
+	content = strings.TrimPrefix(content, "(ANSA) - ")
+	content = strings.TrimSuffix(content, " (ANSA).")
+	content = strings.TrimPrefix(content, "(ANSA-AFP) - ")
+	content = strings.TrimSuffix(content, " (ANSA-AFP).")
+
 	return &Article{
 		Title:       article.Title,
 		Description: article.MetaDescription,
 		Keywords:    article.MetaKeywords,
 		ImageURL:    article.TopImage,
-		Content:     alternateArticle.Content,
+		Content:     content,
 	}, nil
 }
