@@ -1,82 +1,102 @@
 [
   {
-    "title" : "Abruzzo",
-    "url": "https://www.ansa.it/abruzzo/notizie/abruzzo_rss.xml"
+    "title": "Abruzzo",
+    "url": "https://www.ansa.it/abruzzo/notizie/abruzzo_rss.xml",
+    "weight": 0
   },
   {
-    "title" : "Basilicata",
-    "url": "https://www.ansa.it/basilicata/notizie/basilicata_rss.xml"
+    "title": "Basilicata",
+    "url": "https://www.ansa.it/basilicata/notizie/basilicata_rss.xml",
+    "weight": 1
   },
   {
-    "title" : "Calabria",
-    "url": "https://www.ansa.it/calabria/notizie/calabria_rss.xml"
+    "title": "Calabria",
+    "url": "https://www.ansa.it/calabria/notizie/calabria_rss.xml",
+    "weight": 2
   },
   {
-    "title" : "Campania",
-    "url": "https://www.ansa.it/campania/notizie/campania_rss.xml"
+    "title": "Campania",
+    "url": "https://www.ansa.it/campania/notizie/campania_rss.xml",
+    "weight": 3
   },
   {
-    "title" : "Emilia Romagna",
-    "url": "https://www.ansa.it/emiliaromagna/notizie/emiliaromagna_rss.xml"
+    "title": "Emilia Romagna",
+    "url": "https://www.ansa.it/emiliaromagna/notizie/emiliaromagna_rss.xml",
+    "weight": 4
   },
   {
-    "title" : "Friuli Venezia Giulia",
-    "url": "https://www.ansa.it/friuliveneziagiulia/notizie/friuliveneziagiulia_rss.xml"
+    "title": "Friuli Venezia Giulia",
+    "url": "https://www.ansa.it/friuliveneziagiulia/notizie/friuliveneziagiulia_rss.xml",
+    "weight": 5
   },
   {
-    "title" : "Lazio",
-    "url": "https://www.ansa.it/lazio/notizie/lazio_rss.xml"
+    "title": "Lazio",
+    "url": "https://www.ansa.it/lazio/notizie/lazio_rss.xml",
+    "weight": 6
   },
   {
-    "title" : "Liguria",
-    "url": "https://www.ansa.it/liguria/notizie/liguria_rss.xml"
+    "title": "Liguria",
+    "url": "https://www.ansa.it/liguria/notizie/liguria_rss.xml",
+    "weight": 7
   },
   {
-    "title" : "Lombardia",
-    "url": "https://www.ansa.it/lombardia/notizie/lombardia_rss.xml"
+    "title": "Lombardia",
+    "url": "https://www.ansa.it/lombardia/notizie/lombardia_rss.xml",
+    "weight": 8
   },
   {
-    "title" : "Marche",
-    "url": "https://www.ansa.it/marche/notizie/marche_rss.xml"
+    "title": "Marche",
+    "url": "https://www.ansa.it/marche/notizie/marche_rss.xml",
+    "weight": 9
   },
   {
-    "title" : "Molise",
-    "url": "https://www.ansa.it/molise/notizie/molise_rss.xml"
+    "title": "Molise",
+    "url": "https://www.ansa.it/molise/notizie/molise_rss.xml",
+    "weight": 10
   },
   {
-    "title" : "Piemonte",
-    "url": "https://www.ansa.it/piemonte/notizie/piemonte_rss.xml"
+    "title": "Piemonte",
+    "url": "https://www.ansa.it/piemonte/notizie/piemonte_rss.xml",
+    "weight": 11
   },
   {
-    "title" : "Puglia",
-    "url": "https://www.ansa.it/puglia/notizie/puglia_rss.xml"
+    "title": "Puglia",
+    "url": "https://www.ansa.it/puglia/notizie/puglia_rss.xml",
+    "weight": 12
   },
   {
-    "title" : "Sardegna",
-    "url": "https://www.ansa.it/sardegna/notizie/sardegna_rss.xml"
+    "title": "Sardegna",
+    "url": "https://www.ansa.it/sardegna/notizie/sardegna_rss.xml",
+    "weight": 13
   },
   {
-    "title" : "Sicilia",
-    "url": "https://www.ansa.it/sicilia/notizie/sicilia_rss.xml"
+    "title": "Sicilia",
+    "url": "https://www.ansa.it/sicilia/notizie/sicilia_rss.xml",
+    "weight": 14
   },
   {
-    "title" : "Toscana",
-    "url": "https://www.ansa.it/toscana/notizie/toscana_rss.xml"
+    "title": "Toscana",
+    "url": "https://www.ansa.it/toscana/notizie/toscana_rss.xml",
+    "weight": 15
   },
   {
-    "title" : "Trentino Alto Adige/Suedtirol",
-    "url": "https://www.ansa.it/trentino/notizie/trentino_rss.xml"
+    "title": "Trentino Alto Adige/Suedtirol",
+    "url": "https://www.ansa.it/trentino/notizie/trentino_rss.xml",
+    "weight": 16
   },
   {
-    "title" : "Umbria",
-    "url": "https://www.ansa.it/umbria/notizie/umbria_rss.xml"
+    "title": "Umbria",
+    "url": "https://www.ansa.it/umbria/notizie/umbria_rss.xml",
+    "weight": 17
   },
   {
-    "title" : "Valle d'Aosta",
-    "url": "https://www.ansa.it/valledaosta/notizie/valledaosta_rss.xml"
+    "title": "Valle d'Aosta",
+    "url": "https://www.ansa.it/valledaosta/notizie/valledaosta_rss.xml",
+    "weight": 18
   },
   {
-    "title" : "Veneto",
-    "url": "https://www.ansa.it/veneto/notizie/veneto_rss.xml"
+    "title": "Veneto",
+    "url": "https://www.ansa.it/veneto/notizie/veneto_rss.xml",
+    "weight": 19
   }
 ]

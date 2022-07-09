@@ -14,6 +14,7 @@ func Feeds(vals FeedsVals) func(c *gin.Context) {
 	type ResponseFeed struct {
 		Slug           string `json:"slug"`
 		Title          string `json:"title"`
+		Weight         int    `json:"weight"`
 		CollectionSlug string `json:"collection"`
 	}
 
@@ -28,6 +29,7 @@ func Feeds(vals FeedsVals) func(c *gin.Context) {
 			response.Feeds = append(response.Feeds, ResponseFeed{
 				Slug:           feed.Slug(),
 				Title:          feed.Title,
+				Weight:         feed.Weight,
 				CollectionSlug: "principali",
 			})
 		}
