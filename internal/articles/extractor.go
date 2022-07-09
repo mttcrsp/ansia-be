@@ -1,8 +1,6 @@
 package articles
 
 import (
-	"errors"
-
 	goose "github.com/advancedlogic/GoOse"
 	"github.com/sundy-li/html2article"
 )
@@ -23,22 +21,14 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 		return nil, err
 	}
 
-	content := article.CleanedText
-	if content == "" {
-		extracted, err := html2article.NewFromHtml(article.RawHTML)
-		if err != nil {
-			return nil, err
-		}
+	extracted, err := html2article.NewFromHtml(article.RawHTML)
+	if err != nil {
+		return nil, err
+	}
 
-		alternateArticle, err := extracted.ToArticle()
-		if err != nil {
-			return nil, err
-		}
-
-		content = alternateArticle.Content
-		if content == "" {
-			return nil, errors.New("failed to extract article content")
-		}
+	alternateArticle, err := extracted.ToArticle()
+	if err != nil {
+		return nil, err
 	}
 
 	return &Article{
@@ -46,6 +36,6 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 		Description: article.MetaDescription,
 		Keywords:    article.MetaKeywords,
 		ImageURL:    article.TopImage,
-		Content:     content,
+		Content:     alternateArticle.Content,
 	}, nil
 }
