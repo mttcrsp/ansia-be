@@ -27,7 +27,7 @@ func (p *ArticlesProcessor) Process(rssFeed *rss.RSS) error {
 	for _, item := range rssFeed.Channel.Items {
 		found, err := p.store.ArticleExists(item.ID())
 		if err != nil {
-			p.logger.Printf("failed to check article availability '%d': %s", item.ID(), err)
+			p.logger.Printf("failed to check availability '%d': %s", item.ID(), err)
 			time.Sleep(time.Second)
 			continue
 		}
@@ -40,7 +40,7 @@ func (p *ArticlesProcessor) Process(rssFeed *rss.RSS) error {
 		p.logger.Println("extracting article", item.Link)
 		article, err := p.extractor.Extract(item.Link)
 		if err != nil {
-			p.logger.Printf("failed to extract article '%s': %s", item.Link, err)
+			p.logger.Printf("failed to extract '%s': %s", item.Link, err)
 			time.Sleep(time.Second)
 			continue
 		}

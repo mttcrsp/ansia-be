@@ -14,6 +14,7 @@ import (
 	"github.com/mttcrsp/ansiabe/internal/rss"
 	"github.com/mttcrsp/ansiabe/internal/server"
 	"github.com/mttcrsp/ansiabe/internal/store"
+	"github.com/mttcrsp/ansiabe/internal/videojournal"
 )
 
 func main() {
@@ -23,10 +24,7 @@ func main() {
 }
 
 func run() error {
-	logger := newLogger("core")
-	extractor := articles.NewExtractor()
 	feedsLoader := feeds.Loader{}
-	rssLoader := rss.Loader{}
 	store := store.Store{}
 
 	collections, err := feedsLoader.LoadCollections()
@@ -62,11 +60,20 @@ func run() error {
 		c <- "server did exit"
 	}()
 
-	articlesLogger := newLogger("articles")
-	articlesProcessor := core.NewArticlesProcessor(*extractor, store, articlesLogger)
-
-	var processors []core.RSSProcessor
-	processors = append(processors, articlesProcessor)
+	rssLoader := rss.Loader{}
+	logger := newLogger("core")
+	processors := []core.RSSProcessor{
+		core.NewArticlesProcessor(
+			*articles.NewExtractor(),
+			store,
+			*newLogger("articles"),
+		),
+		core.NewVideojournalProcessor(
+			videojournal.Extractor{},
+			store,
+			*newLogger("videojournal"),
+		),
+	}
 
 	go func() {
 		for {
