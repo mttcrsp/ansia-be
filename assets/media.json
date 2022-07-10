@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Foto",
+    "url": "https://www.ansa.it/sito/photogallery/foto_rss.xml",
+    "weight": 0
+  },
+  {
+    "title": "Video",
+    "url": "https://www.ansa.it/sito/videogallery/video_rss.xml",
+    "weight": 1
+  }
+]

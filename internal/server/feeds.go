@@ -6,8 +6,7 @@ import (
 )
 
 type FeedsVals struct {
-	MainFeeds     []feeds.Feed
-	RegionalFeeds []feeds.Feed
+	Collections feeds.Collections
 }
 
 func Feeds(vals FeedsVals) func(c *gin.Context) {
@@ -22,26 +21,24 @@ func Feeds(vals FeedsVals) func(c *gin.Context) {
 		Feeds []ResponseFeed `json:"feeds"`
 	}
 
-	return func(c *gin.Context) {
-		response := Response{}
-
-		for _, feed := range vals.MainFeeds {
-			response.Feeds = append(response.Feeds, ResponseFeed{
+	toResponseFeeds := func(feeds []feeds.Feed, collectionSlug string) []ResponseFeed {
+		var responseFeeds []ResponseFeed
+		for _, feed := range feeds {
+			responseFeeds = append(responseFeeds, ResponseFeed{
 				Slug:           feed.Slug(),
 				Title:          feed.Title,
 				Weight:         feed.Weight,
-				CollectionSlug: "principali",
+				CollectionSlug: collectionSlug,
 			})
 		}
+		return responseFeeds
+	}
 
-		for _, feed := range vals.RegionalFeeds {
-			response.Feeds = append(response.Feeds, ResponseFeed{
-				Slug:           feed.Slug(),
-				Title:          feed.Title,
-				CollectionSlug: "regionali",
-			})
-		}
-
+	return func(c *gin.Context) {
+		response := Response{}
+		response.Feeds = append(response.Feeds, toResponseFeeds(vals.Collections.Main, "principali")...)
+		response.Feeds = append(response.Feeds, toResponseFeeds(vals.Collections.Regional, "regionali")...)
+		response.Feeds = append(response.Feeds, toResponseFeeds(vals.Collections.Media, "media")...)
 		c.JSON(200, response)
 	}
 }

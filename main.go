@@ -28,22 +28,20 @@ func run() error {
 	rssLoader := rss.Loader{}
 	store := core.Store{}
 
-	mainFeeds, regionalFeeds, err := feedsLoader.LoadAll()
+	collections, err := feedsLoader.LoadCollections()
 	if err != nil {
 		return err
 	}
 
 	feedsHandler := server.Feeds(
 		server.FeedsVals{
-			MainFeeds:     mainFeeds,
-			RegionalFeeds: regionalFeeds,
+			Collections: *collections,
 		},
 	)
 
 	feedBySlugHandler := server.FeedBySlug(
 		server.FeedBySlugVals{
-			MainFeeds:     mainFeeds,
-			RegionalFeeds: regionalFeeds,
+			Collections: *collections,
 		},
 		server.FeedBySlugDeps{
 			Store: store,
@@ -65,7 +63,7 @@ func run() error {
 
 	go func() {
 		for {
-			for _, feed := range append(mainFeeds, regionalFeeds...) {
+			for _, feed := range collections.All() {
 				logger.Println("loading feed", feed.Slug())
 				rssFeed, err := rssLoader.Load(feed.URL)
 				if err != nil {

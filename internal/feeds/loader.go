@@ -7,18 +7,27 @@ import (
 
 type Loader struct{}
 
-func (l *Loader) LoadAll() ([]Feed, []Feed, error) {
+func (l *Loader) LoadCollections() (*Collections, error) {
 	mainFeeds, err := l.LoadMain()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	regionalFeeds, err := l.LoadRegional()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return mainFeeds, regionalFeeds, nil
+	mediaFeeds, err := l.LoadMedia()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Collections{
+		Main:     mainFeeds,
+		Regional: regionalFeeds,
+		Media:    mediaFeeds,
+	}, nil
 }
 
 func (l *Loader) LoadMain() ([]Feed, error) {
@@ -27,6 +36,10 @@ func (l *Loader) LoadMain() ([]Feed, error) {
 
 func (l *Loader) LoadRegional() ([]Feed, error) {
 	return l.load("./assets/regional.json")
+}
+
+func (l *Loader) LoadMedia() ([]Feed, error) {
+	return l.load("./assets/media.json")
 }
 
 func (l *Loader) load(path string) ([]Feed, error) {

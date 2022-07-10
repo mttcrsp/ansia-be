@@ -7,8 +7,7 @@ import (
 )
 
 type FeedBySlugVals struct {
-	MainFeeds     []feeds.Feed
-	RegionalFeeds []feeds.Feed
+	Collections feeds.Collections
 }
 
 type FeedBySlugDeps struct {
@@ -24,7 +23,7 @@ func FeedBySlug(vals FeedBySlugVals, deps FeedBySlugDeps) func(c *gin.Context) {
 		feedSlug := c.Param("feed")
 
 		found := false
-		for _, f := range append(vals.MainFeeds, vals.RegionalFeeds...) {
+		for _, f := range vals.Collections.All() {
 			if f.Slug() == feedSlug {
 				found = true
 			}
