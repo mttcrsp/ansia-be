@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
 	"github.com/mttcrsp/ansiabe/internal/store"
 	"github.com/mttcrsp/ansiabe/internal/videojournal"
@@ -23,7 +24,7 @@ func NewVideojournalProcessor(extractor videojournal.Extractor, store store.Stor
 	}
 }
 
-func (p *VideojournalProcessor) Process(rssFeed *rss.RSS) error {
+func (p *VideojournalProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error {
 	for _, item := range rssFeed.Channel.Items {
 		if !strings.Contains(item.Link, "videogiornale") {
 			continue

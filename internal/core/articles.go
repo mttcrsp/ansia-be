@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mttcrsp/ansiabe/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
 	"github.com/mttcrsp/ansiabe/internal/store"
 )
@@ -23,7 +24,7 @@ func NewArticlesProcessor(extractor articles.Extractor, store store.Store, logge
 	}
 }
 
-func (p *ArticlesProcessor) Process(rssFeed *rss.RSS) error {
+func (p *ArticlesProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error {
 	for _, item := range rssFeed.Channel.Items {
 		found, err := p.store.ArticleExists(item.ID())
 		if err != nil {

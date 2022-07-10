@@ -100,7 +100,7 @@ func run() error {
 				}
 
 				for _, processor := range processors {
-					if err := processor.Process(rssFeed); err != nil {
+					if err := processor.Process(feed, rssFeed); err != nil {
 						logger.Println("failed to process:", err)
 					}
 				}
