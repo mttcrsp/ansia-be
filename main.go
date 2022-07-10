@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mttcrsp/ansiabe/internal/articles"
+	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
 	"github.com/mttcrsp/ansiabe/internal/server"
@@ -61,6 +62,12 @@ func run() error {
 		c <- "server did exit"
 	}()
 
+	articlesLogger := newLogger("articles")
+	articlesProcessor := core.NewArticlesProcessor(*extractor, store, articlesLogger)
+
+	var processors []core.RSSProcessor
+	processors = append(processors, articlesProcessor)
+
 	go func() {
 		for {
 			for _, feed := range collections.All() {
@@ -78,31 +85,9 @@ func run() error {
 					continue
 				}
 
-				for _, item := range rssFeed.Channel.Items {
-					found, err := store.ArticleExists(item.ID())
-					if err != nil {
-						logger.Printf("failed to check article availability '%d': %s", item.ID(), err)
-						time.Sleep(time.Second)
-						continue
-					}
-
-					if found {
-						time.Sleep(time.Second)
-						continue
-					}
-
-					logger.Println("extracting article", item.Link)
-					article, err := extractor.Extract(item.Link)
-					if err != nil {
-						logger.Printf("failed to extract article '%s': %s", item.Link, err)
-						time.Sleep(time.Second)
-						continue
-					}
-
-					if err = store.InsertArticle(item, *article); err != nil {
-						logger.Printf("failed to insert article '%s: %s", item.Link, err)
-						time.Sleep(time.Second)
-						continue
+				for _, processor := range processors {
+					if err := processor.Process(rssFeed); err != nil {
+						logger.Println("failed to process:", err)
 					}
 				}
 			}
