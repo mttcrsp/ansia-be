@@ -8,17 +8,32 @@ import (
 type Loader struct{}
 
 func (l *Loader) LoadCollections() (*Collections, error) {
-	mainFeeds, err := l.LoadMain()
+	mainFeeds, err := l.load(
+		collection{
+			path: "./assets/main.json",
+			slug: "principali",
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	regionalFeeds, err := l.LoadRegional()
+	regionalFeeds, err := l.load(
+		collection{
+			path: "./assets/regional.json",
+			slug: "regionali",
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	mediaFeeds, err := l.LoadMedia()
+	mediaFeeds, err := l.load(
+		collection{
+			path: "./assets/media.json",
+			slug: "media",
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -30,25 +45,25 @@ func (l *Loader) LoadCollections() (*Collections, error) {
 	}, nil
 }
 
-func (l *Loader) LoadMain() ([]Feed, error) {
-	return l.load("./assets/main.json")
-}
-
-func (l *Loader) LoadRegional() ([]Feed, error) {
-	return l.load("./assets/regional.json")
-}
-
-func (l *Loader) LoadMedia() ([]Feed, error) {
-	return l.load("./assets/media.json")
-}
-
-func (l *Loader) load(path string) ([]Feed, error) {
-	bytes, err := os.ReadFile(path)
+func (l *Loader) load(collection collection) ([]Feed, error) {
+	bytes, err := os.ReadFile(collection.path)
 	if err != nil {
 		return nil, err
 	}
 
 	feeds := []Feed{}
-	err = json.Unmarshal(bytes, &feeds)
-	return feeds, err
+	if err = json.Unmarshal(bytes, &feeds); err != nil {
+		return nil, err
+	}
+
+	for _, feed := range feeds {
+		feed.CollectionSlug = collection.slug
+	}
+
+	return feeds, nil
+}
+
+type collection struct {
+	path string
+	slug string
 }
