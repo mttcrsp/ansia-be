@@ -37,6 +37,12 @@ const (
 		image_url STRING,
 		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
 	);
+
+	CREATE TABLE IF NOT EXISTS videojournal (
+		item_id INTEGER NOT NULL PRIMARY KEY,
+		video_url STRING NOT NULL,
+		FOREIGN KEY(item_id) REFERENCES item(item_id) ON DELETE CASCADE
+	)
 	`
 	insertItemSQL = `
 	INSERT OR REPLACE INTO item (item_id, title, description, url, published_at)
@@ -50,8 +56,15 @@ const (
 	INSERT INTO article (item_id, keywords, content, image_url)
 		VALUES (:item_id, :keywords, :content, :image_url)
 	`
+	insertVideojournalSQL = `
+	INSERT INTO videojournal (item_id, video_url)
+		VALUES (:item_id, :video_url)
+	`
 	getArticleSQL = `
 	SELECT * FROM article WHERE item_id = ?;
+	`
+	getVideojournalSQL = `
+	SELECT * FROM videojournal WHERE item_id = ?;
 	`
 	getFeedSQL = `
 	SELECT *
@@ -60,7 +73,13 @@ const (
 		JOIN item_feed if ON i.item_id = if.item_id
 	WHERE if.feed = ?
 	ORDER BY i.published_at DESC
-	LIMIT 30;
+	LIMIT 20;
+	`
+	getVideojournalsSQL = `
+	SELECT v.item_id, v.video_url, i.title, i.published_at
+	FROM item i JOIN videojournal v ON i.item_id = v.item_id
+	ORDER BY i.published_at DESC
+	LIMIT 20;
 	`
 )
 
@@ -127,10 +146,34 @@ func (s *Store) InsertArticle(item rss.Item, article articles.Article) error {
 	})
 }
 
+func (s *Store) InsertVideojournal(item rss.Item, videoURL string) error {
+	return s.withDB(func(db *sqlx.DB) error {
+		videojournalRow := *newVideojournalRow(item, videoURL)
+		_, err := db.NamedExec(insertVideojournalSQL, videojournalRow)
+		return err
+	})
+}
+
 func (s *Store) ArticleExists(itemID int64) (bool, error) {
 	err := s.withDB(func(db *sqlx.DB) error {
 		article := articleRow{}
 		return db.Get(&article, getArticleSQL, itemID)
+	})
+
+	switch err {
+	case nil:
+		return true, nil
+	case sql.ErrNoRows:
+		return false, nil
+	default:
+		return false, err
+	}
+}
+
+func (s *Store) VideojournalExists(itemID int64) (bool, error) {
+	err := s.withDB(func(db *sqlx.DB) error {
+		videojournal := videojournalRow{}
+		return db.Get(&videojournal, getVideojournalSQL, itemID)
 	})
 
 	switch err {
@@ -151,6 +194,14 @@ func (s *Store) GetFeed(feed string) ([]FeedItem, error) {
 	return items, err
 }
 
+func (s *Store) GetVideojournals() ([]Videojournal, error) {
+	videojournals := []Videojournal{}
+	err := s.withDB(func(db *sqlx.DB) error {
+		return db.Select(&videojournals, getVideojournalsSQL)
+	})
+	return videojournals, err
+}
+
 type itemRow struct {
 	ID          int64     `db:"item_id"`
 	Title       string    `db:"title"`
@@ -169,6 +220,11 @@ type articleRow struct {
 	Keywords string `db:"keywords"`
 	Content  string `db:"content"`
 	ImageURL string `db:"image_url"`
+}
+
+type videojournalRow struct {
+	ItemID   int64  `db:"item_id"`
+	VideoURL string `db:"video_url"`
 }
 
 func newItemRow(item rss.Item) (*itemRow, error) {
@@ -199,5 +255,12 @@ func newArticleRow(item rss.Item, article articles.Article) *articleRow {
 		Keywords: article.Keywords,
 		Content:  article.Content,
 		ImageURL: article.ImageURL,
+	}
+}
+
+func newVideojournalRow(item rss.Item, videoURL string) *videojournalRow {
+	return &videojournalRow{
+		ItemID:   item.ID(),
+		VideoURL: videoURL,
 	}
 }
