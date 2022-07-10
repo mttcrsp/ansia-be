@@ -24,9 +24,9 @@ func NewArticlesProcessor(extractor articles.Extractor, store store.Store, logge
 	}
 }
 
-func (p *ArticlesProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error {
+func (p *ArticlesProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) {
 	if feed.CollectionSlug == "media" {
-		return nil
+		return
 	}
 
 	for _, item := range rssFeed.Channel.Items {
@@ -56,6 +56,4 @@ func (p *ArticlesProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error {
 			continue
 		}
 	}
-
-	return nil
 }

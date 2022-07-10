@@ -6,5 +6,5 @@ import (
 )
 
 type RSSProcessor interface {
-	Process(feed feeds.Feed, rssFeed *rss.RSS) error
+	Process(feed feeds.Feed, rssFeed *rss.RSS)
 }

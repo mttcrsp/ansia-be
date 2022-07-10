@@ -24,9 +24,9 @@ func NewVideojournalProcessor(extractor videojournal.Extractor, store store.Stor
 	}
 }
 
-func (p *VideojournalProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error {
+func (p *VideojournalProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) {
 	if feed.Slug() != "video" {
-		return nil
+		return
 	}
 
 	for _, item := range rssFeed.Channel.Items {
@@ -55,6 +55,4 @@ func (p *VideojournalProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error
 			continue
 		}
 	}
-
-	return nil
 }
