@@ -9,10 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mttcrsp/ansiabe/internal/articles"
-	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
 	"github.com/mttcrsp/ansiabe/internal/rss"
 	"github.com/mttcrsp/ansiabe/internal/server"
+	"github.com/mttcrsp/ansiabe/internal/store"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func run() error {
 	extractor := articles.NewExtractor()
 	feedsLoader := feeds.Loader{}
 	rssLoader := rss.Loader{}
-	store := core.Store{}
+	store := store.Store{}
 
 	collections, err := feedsLoader.LoadCollections()
 	if err != nil {

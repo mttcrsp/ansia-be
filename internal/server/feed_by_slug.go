@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/mttcrsp/ansiabe/internal/core"
 	"github.com/mttcrsp/ansiabe/internal/feeds"
+	"github.com/mttcrsp/ansiabe/internal/store"
 )
 
 type FeedBySlugVals struct {
@@ -11,12 +11,12 @@ type FeedBySlugVals struct {
 }
 
 type FeedBySlugDeps struct {
-	Store core.Store
+	Store store.Store
 }
 
 func FeedBySlug(vals FeedBySlugVals, deps FeedBySlugDeps) func(c *gin.Context) {
 	type Response struct {
-		Items []core.FeedItem `json:"items"`
+		Items []store.FeedItem `json:"items"`
 	}
 
 	return func(c *gin.Context) {
