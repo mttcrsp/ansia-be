@@ -47,6 +47,12 @@ func run() error {
 		},
 	)
 
+	videojournalhandler := server.Videojournal(
+		server.VideojournalDeps{
+			Store: store,
+		},
+	)
+
 	c := make(chan string)
 
 	go func() {
@@ -55,6 +61,7 @@ func run() error {
 		r := gin.Default()
 		r.GET("/v1/feeds", feedsHandler)
 		r.GET("/v1/feeds/:feed/items", feedBySlugHandler)
+		r.GET("/v1/videojournals", videojournalhandler)
 		r.Run()
 
 		c <- "server did exit"
