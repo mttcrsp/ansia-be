@@ -25,6 +25,10 @@ func NewVideojournalProcessor(extractor videojournal.Extractor, store store.Stor
 }
 
 func (p *VideojournalProcessor) Process(feed feeds.Feed, rssFeed *rss.RSS) error {
+	if feed.Slug() != "video" {
+		return nil
+	}
+
 	for _, item := range rssFeed.Channel.Items {
 		if !strings.Contains(item.Link, "videogiornale") {
 			continue
