@@ -56,8 +56,10 @@ func (l *Loader) load(collection collection) ([]Feed, error) {
 		return nil, err
 	}
 
-	for _, feed := range feeds {
+	for i := range feeds {
+		feed := feeds[i]
 		feed.CollectionSlug = collection.slug
+		feeds[i] = feed
 	}
 
 	return feeds, nil
