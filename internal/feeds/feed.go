@@ -1,6 +1,10 @@
 package feeds
 
-import "github.com/gosimple/slug"
+import (
+	"encoding/json"
+
+	"github.com/gosimple/slug"
+)
 
 type Feed struct {
 	Title          string `json:"title"`
@@ -11,4 +15,15 @@ type Feed struct {
 
 func (f *Feed) Slug() string {
 	return slug.Make(f.Title)
+}
+
+func (f *Feed) MarshalJSON() ([]byte, error) {
+	type Alias Feed
+	return json.Marshal(&struct {
+		Slug string `json:"slug"`
+		*Alias
+	}{
+		Slug:  f.Slug(),
+		Alias: (*Alias)(f),
+	})
 }
