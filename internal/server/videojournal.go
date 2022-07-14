@@ -13,7 +13,7 @@ type VideojournalDeps struct {
 
 func Videojournal(deps VideojournalDeps) func(c *gin.Context) {
 	type Response struct {
-		Videojournals []store.Videojournal
+		Videojournals []store.Videojournal `json:"videojournals"`
 	}
 
 	return func(c *gin.Context) {
