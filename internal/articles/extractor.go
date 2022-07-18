@@ -1,10 +1,12 @@
 package articles
 
 import (
+	"html"
+	"log"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	goose "github.com/advancedlogic/GoOse"
-	"github.com/sundy-li/html2article"
 )
 
 type Extractor struct {
@@ -23,21 +25,39 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 		return nil, err
 	}
 
-	extracted, err := html2article.NewFromHtml(article.RawHTML)
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(article.RawHTML))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	node, err := doc.Find("div.news-txt p").Html()
 	if err != nil {
 		return nil, err
 	}
 
-	alternateArticle, err := extracted.ToArticle()
-	if err != nil {
-		return nil, err
+	rawContent := strings.ReplaceAll(node, "\n", " ")
+	rawContent = strings.ReplaceAll(rawContent, "<strong>", "")
+	rawContent = strings.ReplaceAll(rawContent, "</strong>", "")
+	rawContent = strings.ReplaceAll(rawContent, "<br>", "\n")
+	rawContent = strings.ReplaceAll(rawContent, "<br/>", "\n")
+	rawContent = html.UnescapeString(rawContent)
+
+	paragraphs := strings.Split(rawContent, "\n")
+	var trimmedParagraphs []string
+	for _, p := range paragraphs {
+		trimmed := strings.TrimSpace(p)
+		if len(trimmed) == 0 {
+			continue
+		}
+		trimmedParagraphs = append(trimmedParagraphs, trimmed)
 	}
 
-	content := alternateArticle.Content
+	content := strings.Join(trimmedParagraphs, "\n\n")
 	content = strings.TrimPrefix(content, "(ANSA) - ")
-	content = strings.TrimSuffix(content, " (ANSA).")
 	content = strings.TrimPrefix(content, "(ANSA-AFP) - ")
-	content = strings.TrimSuffix(content, " (ANSA-AFP).")
+	content = strings.TrimSuffix(content, "(ANSA).")
+	content = strings.TrimSuffix(content, "(ANSA-AFP).")
+	content = strings.TrimSpace(content)
 
 	return &Article{
 		Title:       article.Title,
