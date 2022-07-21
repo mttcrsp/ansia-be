@@ -3,6 +3,7 @@ package articles
 import (
 	"html"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,8 +20,8 @@ func NewExtractor() *Extractor {
 	}
 }
 
-func (e *Extractor) Extract(url string) (*Article, error) {
-	article, err := e.g.ExtractFromURL(url)
+func (e *Extractor) Extract(articleURL string) (*Article, error) {
+	article, err := e.g.ExtractFromURL(articleURL)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +35,13 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	imageURL, err := url.Parse(article.TopImage)
+	if err != nil {
+		return nil, err
+	}
+
+	imageURL.Scheme = "https"
 
 	rawContent := strings.ReplaceAll(node, "\n", " ")
 	rawContent = strings.ReplaceAll(rawContent, "<strong>", "")
@@ -63,7 +71,7 @@ func (e *Extractor) Extract(url string) (*Article, error) {
 		Title:       article.Title,
 		Description: article.MetaDescription,
 		Keywords:    article.MetaKeywords,
-		ImageURL:    article.TopImage,
+		ImageURL:    imageURL.String(),
 		Content:     content,
 	}, nil
 }
