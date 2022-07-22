@@ -60,7 +60,7 @@ func (e *Extractor) Extract(articleURL string) (*Article, error) {
 		trimmedParagraphs = append(trimmedParagraphs, trimmed)
 	}
 
-	content := strings.Join(trimmedParagraphs, "\n\n")
+	content := strings.Join(trimmedParagraphs, "\n")
 	content = strings.TrimPrefix(content, "(ANSA) - ")
 	content = strings.TrimPrefix(content, "(ANSA-AFP) - ")
 	content = strings.TrimSuffix(content, "(ANSA).")
