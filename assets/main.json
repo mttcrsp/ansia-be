@@ -2,61 +2,73 @@
   {
     "title": "Home",
     "url": "https://www.ansa.it/sito/ansait_rss.xml",
-    "weight": 0
+    "weight": 0,
+    "emoji": "🆕"
   },
   {
     "title": "Cronaca",
     "url": "https://www.ansa.it/sito/notizie/cronaca/cronaca_rss.xml",
-    "weight": 1
+    "weight": 1,
+    "emoji": "📰"
   },
   {
     "title": "Politica",
     "url": "https://www.ansa.it/sito/notizie/politica/politica_rss.xml",
-    "weight": 2
+    "weight": 2,
+    "emoji": "👔"
   },
   {
     "title": "Mondo",
     "url": "https://www.ansa.it/sito/notizie/mondo/mondo_rss.xml",
-    "weight": 3
+    "weight": 3,
+    "emoji": "🌎"
   },
   {
     "title": "Economia",
     "url": "https://www.ansa.it/sito/notizie/economia/economia_rss.xml",
-    "weight": 4
+    "weight": 4,
+    "emoji": "📊"
   },
   {
     "title": "Calcio",
     "url": "https://www.ansa.it/sito/notizie/sport/calcio/calcio_rss.xml",
-    "weight": 5
+    "weight": 5,
+    "emoji": "⚽️"
   },
   {
     "title": "Sport",
     "url": "https://www.ansa.it/sito/notizie/sport/sport_rss.xml",
-    "weight": 6
+    "weight": 6,
+    "emoji": "🏆"
   },
   {
     "title": "Cinema",
     "url": "https://www.ansa.it/sito/notizie/cultura/cinema/cinema_rss.xml",
-    "weight": 7
+    "weight": 7,
+    "emoji": "🎞"
   },
   {
     "title": "Cultura",
     "url": "https://www.ansa.it/sito/notizie/cultura/cultura_rss.xml",
-    "weight": 8
+    "weight": 8,
+    "emoji": "🎭"
   },
   {
     "title": "Tecnologia",
     "url": "https://www.ansa.it/sito/notizie/tecnologia/tecnologia_rss.xml",
-    "weight": 9
+    "weight": 9,
+    "emoji": "💻"
   },
   {
     "title": "Ultime Notizie",
     "url": "https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml",
-    "weight": 10
+    "weight": 10,
+    "emoji": "⏱"
   },
   {
     "title": "English News",
     "url": "https://www.ansa.it/english/english_rss.xml",
-    "weight": 11
+    "weight": 11,
+    "emoji": "🇬🇧"
   }
 ]

@@ -2,101 +2,121 @@
   {
     "title": "Abruzzo",
     "url": "https://www.ansa.it/abruzzo/notizie/abruzzo_rss.xml",
-    "weight": 0
+    "weight": 0,
+    "emoji": "📍"
   },
   {
     "title": "Basilicata",
     "url": "https://www.ansa.it/basilicata/notizie/basilicata_rss.xml",
-    "weight": 1
+    "weight": 1,
+    "emoji": "📍"
   },
   {
     "title": "Calabria",
     "url": "https://www.ansa.it/calabria/notizie/calabria_rss.xml",
-    "weight": 2
+    "weight": 2,
+    "emoji": "📍"
   },
   {
     "title": "Campania",
     "url": "https://www.ansa.it/campania/notizie/campania_rss.xml",
-    "weight": 3
+    "weight": 3,
+    "emoji": "📍"
   },
   {
     "title": "Emilia Romagna",
     "url": "https://www.ansa.it/emiliaromagna/notizie/emiliaromagna_rss.xml",
-    "weight": 4
+    "weight": 4,
+    "emoji": "📍"
   },
   {
     "title": "Friuli Venezia Giulia",
     "url": "https://www.ansa.it/friuliveneziagiulia/notizie/friuliveneziagiulia_rss.xml",
-    "weight": 5
+    "weight": 5,
+    "emoji": "📍"
   },
   {
     "title": "Lazio",
     "url": "https://www.ansa.it/lazio/notizie/lazio_rss.xml",
-    "weight": 6
+    "weight": 6,
+    "emoji": "📍"
   },
   {
     "title": "Liguria",
     "url": "https://www.ansa.it/liguria/notizie/liguria_rss.xml",
-    "weight": 7
+    "weight": 7,
+    "emoji": "📍"
   },
   {
     "title": "Lombardia",
     "url": "https://www.ansa.it/lombardia/notizie/lombardia_rss.xml",
-    "weight": 8
+    "weight": 8,
+    "emoji": "📍"
   },
   {
     "title": "Marche",
     "url": "https://www.ansa.it/marche/notizie/marche_rss.xml",
-    "weight": 9
+    "weight": 9,
+    "emoji": "📍"
   },
   {
     "title": "Molise",
     "url": "https://www.ansa.it/molise/notizie/molise_rss.xml",
-    "weight": 10
+    "weight": 10,
+    "emoji": "📍"
   },
   {
     "title": "Piemonte",
     "url": "https://www.ansa.it/piemonte/notizie/piemonte_rss.xml",
-    "weight": 11
+    "weight": 11,
+    "emoji": "📍"
   },
   {
     "title": "Puglia",
     "url": "https://www.ansa.it/puglia/notizie/puglia_rss.xml",
-    "weight": 12
+    "weight": 12,
+    "emoji": "📍"
   },
   {
     "title": "Sardegna",
     "url": "https://www.ansa.it/sardegna/notizie/sardegna_rss.xml",
-    "weight": 13
+    "weight": 13,
+    "emoji": "📍"
   },
   {
     "title": "Sicilia",
     "url": "https://www.ansa.it/sicilia/notizie/sicilia_rss.xml",
-    "weight": 14
+    "weight": 14,
+    "emoji": "📍"
   },
   {
     "title": "Toscana",
     "url": "https://www.ansa.it/toscana/notizie/toscana_rss.xml",
-    "weight": 15
+    "weight": 15,
+    "emoji": "📍"
   },
   {
     "title": "Trentino Alto Adige/Suedtirol",
     "url": "https://www.ansa.it/trentino/notizie/trentino_rss.xml",
-    "weight": 16
+    "weight": 16,
+    "emoji": "📍"
   },
   {
     "title": "Umbria",
     "url": "https://www.ansa.it/umbria/notizie/umbria_rss.xml",
-    "weight": 17
+    "weight": 17,
+    "emoji": "📍"
   },
   {
     "title": "Valle d'Aosta",
     "url": "https://www.ansa.it/valledaosta/notizie/valledaosta_rss.xml",
-    "weight": 18
+    "weight": 18,
+    "emoji": "📍"
   },
   {
     "title": "Veneto",
     "url": "https://www.ansa.it/veneto/notizie/veneto_rss.xml",
-    "weight": 19
+    "weight": 19,
+    "emoji": "📍"
   }
 ]

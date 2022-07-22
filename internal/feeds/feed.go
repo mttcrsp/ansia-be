@@ -9,6 +9,7 @@ import (
 type Feed struct {
 	Title          string `json:"title"`
 	URL            string `json:"url"`
+	Emoji          string `json:"emoji"`
 	Weight         int    `json:"weight"`
 	CollectionSlug string `json:"collection"`
 }
