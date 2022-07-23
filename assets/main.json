@@ -60,13 +60,13 @@
     "emoji": "💻"
   },
   {
-    "title": "Ultime Notizie",
+    "title": "Ultima ora",
     "url": "https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml",
     "weight": 10,
     "emoji": "⏱"
   },
   {
-    "title": "English News",
+    "title": "English",
     "url": "https://www.ansa.it/english/english_rss.xml",
     "weight": 11,
     "emoji": "🇬🇧"
