@@ -16,7 +16,7 @@ type FeedBySlugDeps struct {
 
 func FeedBySlug(vals FeedBySlugVals, deps FeedBySlugDeps) func(c *gin.Context) {
 	type Response struct {
-		Items []store.FeedItem `json:"items"`
+		Articles []store.FeedItem `json:"articles"`
 	}
 
 	return func(c *gin.Context) {
@@ -45,6 +45,6 @@ func FeedBySlug(vals FeedBySlugVals, deps FeedBySlugDeps) func(c *gin.Context) {
 			status = 204
 		}
 
-		c.JSON(status, Response{Items: feedItems})
+		c.JSON(status, Response{Articles: feedItems})
 	}
 }

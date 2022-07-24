@@ -7,7 +7,7 @@ import (
 )
 
 type FeedItem struct {
-	ItemID      int64     `db:"item_id" json:"item_id"`
+	ItemID      int64     `db:"item_id" json:"article_id"`
 	Title       string    `db:"title" json:"title"`
 	Description string    `db:"description" json:"description"`
 	URL         string    `db:"url" json:"url"`

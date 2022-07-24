@@ -60,7 +60,7 @@ func run() error {
 
 		r := gin.Default()
 		r.GET("/v1/feeds", feedsHandler)
-		r.GET("/v1/feeds/:feed/items", feedBySlugHandler)
+		r.GET("/v1/feeds/:feed/articles", feedBySlugHandler)
 		r.GET("/v1/videojournals", videojournalhandler)
 		r.Run()
 
